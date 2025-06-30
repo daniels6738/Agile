@@ -1,9 +1,9 @@
 import { Injectable } from '@nestjs/common';
-import { MysqlService } from './app.mysql.service';
+import { MysqlService } from '../db/app.mysql.service';
 import * as bcrypt from 'bcrypt';
 
 @Injectable()
-export class AppService {
+export class UsuarioService {
   constructor(private readonly mysqlService: MysqlService) {}
 
   //CRUDS usuario

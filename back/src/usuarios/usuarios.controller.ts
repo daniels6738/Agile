@@ -7,11 +7,11 @@ import {
   Post,
   Put,
 } from '@nestjs/common';
-import { AppService } from './app.service';
+import { UsuarioService } from './usuarios.service';
 
 @Controller('usuarios')
 export class AppController {
-  constructor(private readonly appService: AppService) {}
+  constructor(private readonly appService: UsuarioService) {}
 
   @Get()
   async listarUsuarios() {

@@ -1,11 +1,28 @@
 import { Module } from '@nestjs/common';
-import { AppController } from './app.controller';
-import { AppService } from './app.service';
-import { MysqlService } from './app.mysql.service';
+import { AppController } from './usuarios/usuarios.controller';
+import { UsuarioService } from './usuarios/usuarios.service';
+import { MysqlService } from './db/app.mysql.service';
+import { ProjetosService } from './projetos/projetos.service';
+import { ProjetosController } from './projetos/projetos.controller';
+import { SprintsController } from './sprints/sprints.controller';
+import { SprintsService } from './sprints/sprints.service';
+import { TasksService } from './tasks/tasks.service';
+import { TasksController } from './tasks/tasks.controller';
 
 @Module({
   imports: [],
-  controllers: [AppController],
-  providers: [AppService, MysqlService],
+  controllers: [
+    AppController,
+    ProjetosController,
+    SprintsController,
+    TasksController,
+  ],
+  providers: [
+    UsuarioService,
+    MysqlService,
+    ProjetosService,
+    SprintsService,
+    TasksService,
+  ],
 })
 export class AppModule {}
