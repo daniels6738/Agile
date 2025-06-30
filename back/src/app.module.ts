@@ -1,5 +1,5 @@
 import { Module } from '@nestjs/common';
-import { AppController } from './usuarios/usuarios.controller';
+import { UsuariosController } from './usuarios/usuarios.controller';
 import { UsuarioService } from './usuarios/usuarios.service';
 import { MysqlService } from './db/app.mysql.service';
 import { ProjetosService } from './projetos/projetos.service';
@@ -12,7 +12,7 @@ import { TasksController } from './tasks/tasks.controller';
 @Module({
   imports: [],
   controllers: [
-    AppController,
+    UsuariosController,
     ProjetosController,
     SprintsController,
     TasksController,
