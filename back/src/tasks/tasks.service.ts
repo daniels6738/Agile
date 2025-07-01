@@ -78,4 +78,15 @@ export class TasksService {
   async deletarTask(id: number) {
     return this.mysqlService.query('DELETE FROM Tasks WHERE id = ?', [id]);
   }
+
+  async atualizarStatus(id: number, novoStatus: string): Promise<any> {
+    const query = 'UPDATE Tasks SET status = ? WHERE id = ?';
+    const resultado = await this.mysqlService.query(query, [novoStatus, id]);
+
+    if ((resultado as any).affectedRows === 0) {
+      throw new Error('Task não encontrada');
+    }
+
+    return { message: 'Status atualizado com sucesso' };
+  }
 }

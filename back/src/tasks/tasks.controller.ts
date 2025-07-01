@@ -6,6 +6,7 @@ import {
   Param,
   Post,
   Put,
+  Patch,
 } from '@nestjs/common';
 import { TasksService } from './tasks.service';
 
@@ -58,5 +59,13 @@ export class TasksController {
   @Delete(':id')
   async deletar(@Param('id') id: string) {
     return this.tasksService.deletarTask(Number(id));
+  }
+
+  @Patch(':id/status')
+  async atualizarStatus(
+    @Param('id') id: string,
+    @Body('status') status: string,
+  ) {
+    return this.tasksService.atualizarStatus(Number(id), status);
   }
 }
