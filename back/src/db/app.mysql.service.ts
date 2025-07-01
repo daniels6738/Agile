@@ -14,8 +14,8 @@ export class MysqlService implements OnModuleInit {
     });
   }
 
-  async query(sql: string, params?: any[]) {
+  async query<T = any>(sql: string, params?: any[]): Promise<T[]> {
     const [rows] = await this.connection.execute(sql, params);
-    return rows;
+    return rows as T[];
   }
 }

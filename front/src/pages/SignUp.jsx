@@ -3,18 +3,45 @@ import { useNavigate } from 'react-router-dom';
 import '../styles/Auth.css';
 
 const SignUp = () => {
+  const [nome, setNome] = useState('');
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [confirmPassword, setConfirmPassword] = useState('');
   const navigate = useNavigate();
 
-  const handleSubmit = (e) => {
+  const handleSubmit = async (e) => {
     e.preventDefault();
     if (password !== confirmPassword) {
       alert('As senhas não coincidem!');
       return;
     }
     alert(`Sign up with: ${email}`);
+
+     try {
+      const response = await fetch('http://localhost:3000/usuarios/cadastrar', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
+          nome,
+          email,
+          password,
+        }),
+      });
+
+      const data = await response.json();
+
+      if (response.ok) {
+        alert('Cadastro realizado com sucesso!');
+        navigate('/login');
+      } else {
+        alert(data.message || 'Erro ao cadastrar');
+      }
+    } catch (error) {
+      console.error('Erro ao conectar com a API:', error);
+      alert('Erro na conexão com o servidor.');
+    }
   };
 
   return (
@@ -25,6 +52,17 @@ const SignUp = () => {
       </div>
       
       <div className="auth-form">
+        <div className="input-group">
+          <input
+            type="text"
+            placeholder="Digite seu nome"
+            value={nome}
+            onChange={(e) => setNome(e.target.value)}
+            required
+            className="auth-input"
+          />
+        </div>
+
         <div className="input-group">
           <input
             type="email"

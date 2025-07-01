@@ -7,10 +7,41 @@ const Login = () => {
   const [password, setPassword] = useState('');
   const navigate = useNavigate();
 
-  const handleSubmit = (e) => {
+  const handleSubmit = async (e) => {
     e.preventDefault();
-    alert(`Login with: ${email}`);
+   // alert(`Login with: ${email}`);
+
+    try {
+    const response = await fetch('http://localhost:3000/usuarios/login', {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+      },
+      body: JSON.stringify({
+        email,
+        password,
+      }),
+    });
+
+    const data = await response.json();
+
+    if (response.ok) {
+  
+      alert('Login realizado com sucesso!');
+      navigate('/signup'); 
+    } else {
+    
+      alert(data.message || 'Erro ao fazer login');
+    }
+  } catch (error) {
+    console.error('Erro ao conectar com a API:', error);
+    alert('Erro na conexão com o servidor.');
+  }
+    
   };
+
+
+  
 
   return (
     <div className="auth-container">
