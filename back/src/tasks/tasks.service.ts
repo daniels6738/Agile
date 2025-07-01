@@ -89,4 +89,15 @@ export class TasksService {
 
     return { message: 'Status atualizado com sucesso' };
   }
+
+  async associarSprint(id: number, id_sprint: number): Promise<any> {
+    const query = 'UPDATE Tasks SET id_sprint = ? WHERE id = ?';
+    const resultado = await this.mysqlService.query(query, [id_sprint, id]);
+
+    if ((resultado as any).affectedRows === 0) {
+      throw new Error('Task não encontrada');
+    }
+
+    return { message: 'Sprint associada com sucesso' };
+  }
 }

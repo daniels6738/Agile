@@ -68,4 +68,12 @@ export class TasksController {
   ) {
     return this.tasksService.atualizarStatus(Number(id), status);
   }
+
+  @Patch(':id/sprint')
+  async associarSprint(
+    @Param('id') id: string,
+    @Body('id_sprint') id_sprint: number,
+  ) {
+    return this.tasksService.associarSprint(Number(id), id_sprint);
+  }
 }
