@@ -8,6 +8,8 @@ import { SprintsController } from './sprints/sprints.controller';
 import { SprintsService } from './sprints/sprints.service';
 import { TasksService } from './tasks/tasks.service';
 import { TasksController } from './tasks/tasks.controller';
+import { NikoNikoController } from './nikoNiko/nikoNiko.controller';
+import { NikoNikoService } from './nikoNiko/nikoNiko.service';
 
 @Module({
   imports: [],
@@ -16,6 +18,7 @@ import { TasksController } from './tasks/tasks.controller';
     ProjetosController,
     SprintsController,
     TasksController,
+    NikoNikoController,
   ],
   providers: [
     UsuarioService,
@@ -23,6 +26,7 @@ import { TasksController } from './tasks/tasks.controller';
     ProjetosService,
     SprintsService,
     TasksService,
+    NikoNikoService,
   ],
 })
 export class AppModule {}
