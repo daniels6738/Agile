@@ -5,7 +5,7 @@ import { MysqlService } from '../db/app.mysql.service';
 export class NikoNikoService {
   constructor(private readonly mysqlService: MysqlService) {}
 
-  // CRUDS projetos
+  // CRUDS NikoNiko
 
   async listarNinoNiKO(): Promise<any> {
     const sql = 'SELECT * FROM NikoNikoEntries';
