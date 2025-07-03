@@ -49,4 +49,20 @@ export class SprintsService {
   async deletarSprint(id: number) {
     return this.mysqlService.query('DELETE FROM Sprints WHERE id = ?', [id]);
   }
+
+  async somarPontuacaoPorUsuarioNaSprint(
+    id_sprint: number,
+    id_usuario: number,
+  ): Promise<{ total: number }> {
+    const [resultado] = await this.mysqlService.query(
+      `SELECT SUM(pontuacao) as total
+     FROM Tasks
+     WHERE id_sprint = ? AND id_responsavel = ?`,
+      [id_sprint, id_usuario],
+    );
+
+    return {
+      total: Number(resultado?.total ?? 0),
+    };
+  }
 }

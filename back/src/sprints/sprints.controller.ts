@@ -22,6 +22,16 @@ export class SprintsController {
   async buscar(@Param('id') id: string) {
     return this.sprintsService.buscarSprintPorId(Number(id));
   }
+  @Get('estatistica-usuario/:id_sprint/:id_usuario')
+  async somarPontuacaoSprint(
+    @Param('id_sprint') id_sprint: string,
+    @Param('id_usuario') id_usuario: string,
+  ) {
+    return this.sprintsService.somarPontuacaoPorUsuarioNaSprint(
+      Number(id_sprint),
+      Number(id_usuario),
+    );
+  }
 
   @Post()
   async criar(

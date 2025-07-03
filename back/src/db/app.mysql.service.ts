@@ -18,4 +18,10 @@ export class MysqlService implements OnModuleInit {
     const [rows] = await this.connection.execute(sql, params);
     return rows as T[];
   }
+  async insert(sql: string, params?: any[]): Promise<number> {
+    const [result] = await this.connection.execute(sql, params);
+    // result será do tipo ResultSetHeader
+    const { insertId } = result as mysql.ResultSetHeader;
+    return insertId;
+  }
 }
