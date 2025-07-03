@@ -154,3 +154,18 @@ CREATE TABLE IF NOT EXISTS `NikoNikoEntries` (
     REFERENCES `Projetos` (`id`)
     ON DELETE CASCADE
 ) ENGINE = InnoDB;
+
+CREATE TABLE IF NOT EXISTS GraficosBurndown (
+  id INT UNSIGNED NOT NULL AUTO_INCREMENT,
+  id_sprint INT UNSIGNED NOT NULL,
+  nome_sprint VARCHAR(100) NOT NULL,
+  dias_sprint INT NOT NULL,
+  pontos_totais INT NOT NULL,
+  progresso_json TEXT NOT NULL,
+  imagem_base64 LONGTEXT NOT NULL,
+  data_criacao TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+  PRIMARY KEY (id),
+  FOREIGN KEY (id_sprint) REFERENCES Sprints(id) ON DELETE CASCADE
+);
+
+

@@ -36,7 +36,6 @@ export class UsuariosController {
 
   @Post('login')
   async login(@Body() body: { email: string; password: string }) {
-    console.log(body.email, body.password);
     return this.UsuarioService.login(body.email, body.password);
   }
 

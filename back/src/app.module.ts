@@ -12,6 +12,8 @@ import { NikoNikoController } from './nikoNiko/nikoNiko.controller';
 import { NikoNikoService } from './nikoNiko/nikoNiko.service';
 import { PlanningPokerService } from './planningPoker/planningPoker.service';
 import { PlanningPokerController } from './planningPoker/planningPoker.controller';
+import { BurndownController } from './burndown/burndown.controller';
+import { BurndownService } from './burndown/burndown.service';
 
 @Module({
   imports: [],
@@ -22,6 +24,7 @@ import { PlanningPokerController } from './planningPoker/planningPoker.controlle
     TasksController,
     NikoNikoController,
     PlanningPokerController,
+    BurndownController,
   ],
   providers: [
     UsuarioService,
@@ -31,6 +34,7 @@ import { PlanningPokerController } from './planningPoker/planningPoker.controlle
     TasksService,
     NikoNikoService,
     PlanningPokerService,
+    BurndownService,
   ],
 })
 export class AppModule {}
