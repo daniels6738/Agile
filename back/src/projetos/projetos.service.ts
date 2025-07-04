@@ -90,4 +90,14 @@ export class ProjetosService {
       'DELETE FROM ProjectMembers WHERE id_projeto = ? AND id_usuario = ?';
     return this.mysqlService.query(sql, [id_projeto, id_usuario]);
   }
+
+  // Lista todos os projetos dos quais o usuário é membro
+  async listarProjetosPorUsuario(id_usuario: number): Promise<any> {
+    const sql = `
+      SELECT p.* FROM Projetos p
+      INNER JOIN ProjectMembers pm ON p.id = pm.id_projeto
+      WHERE pm.id_usuario = ?
+    `;
+    return this.mysqlService.query(sql, [id_usuario]);
+  }
 }

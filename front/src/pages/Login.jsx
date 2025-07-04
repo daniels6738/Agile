@@ -26,9 +26,12 @@ const Login = () => {
     const data = await response.json();
 
     if (response.ok) {
-  
+      // Store user id in localStorage
+      if (data && data.id) {
+        localStorage.setItem('userId', data.id);
+      }
       alert('Login realizado com sucesso!');
-      navigate('/signup'); 
+      navigate('/home'); // Redirect to new main page
     } else {
     
       alert(data.message || 'Erro ao fazer login');

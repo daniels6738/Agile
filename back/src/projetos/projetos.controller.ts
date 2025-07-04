@@ -86,4 +86,9 @@ export class ProjetosController {
       Number(id_usuario),
     );
   }
+
+  @Get('usuario/:id')
+  async listarProjetosPorUsuario(@Param('id') id: string) {
+    return this.projetoService.listarProjetosPorUsuario(Number(id));
+  }
 }
