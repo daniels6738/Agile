@@ -1,9 +1,10 @@
-import React, { useState } from 'react';
+import React, { useEffect, useState } from 'react';
 
 const initialColumns = [
   { id: 1, name: 'A Fazer', tickets: [] },
-  { id: 2, name: 'Em Progresso', tickets: [] },
-  { id: 3, name: 'Concluído', tickets: [] },
+  { id: 2, name: 'Em Andamento', tickets: [] },
+  { id: 3, name: 'Em Revisão', tickets: [] },
+  { id: 4, name: 'Concluído', tickets: [] },
 ];
 
 const Dashboard = () => {
@@ -14,12 +15,15 @@ const Dashboard = () => {
   const [draggedTicket, setDraggedTicket] = useState(null);
   const [draggedColumn, setDraggedColumn] = useState(null);
   const [dragOverColumn, setDragOverColumn] = useState(null);
+  const [membros, setMembros] = useState([]);
+
   const [modalFields, setModalFields] = useState({
     titulo: '',
     descricao: '',
-    id_responsavel: '',
+    id_responsavel: null,
     pontuacao: '',
     id_projeto: 1, // Default project ID since we don't have project management yet
+    status: "A FAZER"
   });
 
   const sidebarItems = [
@@ -56,19 +60,60 @@ const Dashboard = () => {
     setNewColumnName('');
   };
 
-  const handleCreateTicket = () => {
-    if (!modalFields.titulo.trim()) return;
-    
+const handleCreateTicket = async () => {
+  if (!modalFields.titulo.trim()) return;
+
+  // quando tiver o acesso aos ids retirar os comentarios
+  //const id_projeto = Number(localStorage.getItem('id_projeto')); 
+  //const id_sprint = modalFields.id_sprint || null;
+
+  // Valores fixos por enquanto
+  const id_projeto = 3;
+  const id_sprint = 1;
+
+  const taskPayload = {
+    id_projeto,
+    id_sprint,
+    id_responsavel: modalFields.id_responsavel || null,
+    titulo: modalFields.titulo,
+    descricao: modalFields.descricao,
+    status: modalFields.status || 'A Fazer',
+  };
+
+  try {
+    // 1. Criar tarefa
+    const response = await fetch('http://localhost:3000/tasks', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify(taskPayload),
+    });
+
+    const data = await response.json();
+
+    if (!response.ok) {
+      alert(data.message || 'Erro ao criar tarefa');
+      return;
+    }
+
+    // 2. Enviar pontuação separadamente
+    if (modalFields.pontuacao) {
+      await fetch('http://localhost:3000/planning-poker/votar', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          id_task: data.id,
+          valor_voto: Number(modalFields.pontuacao),
+        }),
+      });
+    }
+
+    // 3. Atualizar estado local (opcional)
     const newTicket = {
-      id: Date.now(),
-      titulo: modalFields.titulo,
-      descricao: modalFields.descricao,
-      id_responsavel: modalFields.id_responsavel,
-      pontuacao: modalFields.pontuacao ? parseInt(modalFields.pontuacao) : null,
-      id_projeto: modalFields.id_projeto,
-      status: 'A Fazer',
+      ...taskPayload,
+      id: data.id, // id retornado do backend
+      pontuacao: modalFields.pontuacao ? Number(modalFields.pontuacao) : null,
     };
-    
+
     setColumns(columns =>
       columns.map(col =>
         col.name === 'A Fazer'
@@ -76,8 +121,15 @@ const Dashboard = () => {
           : col
       )
     );
+
     closeTicketModal();
-  };
+    alert('Tarefa criada com sucesso!');
+  } catch (error) {
+    console.error('Erro ao criar ticket:', error);
+    alert('Erro na comunicação com o servidor.');
+  }
+};
+
 
   const handleDragStart = (ticket, colId) => {
     setDraggedTicket({ ...ticket, fromColId: colId });
@@ -133,7 +185,37 @@ const Dashboard = () => {
     });
     setDraggedTicket(null);
   };
+useEffect(() => {
+  const carregarMembros = async () => {
+    try {
+      const idProjeto = 3;
+      const res = await fetch(`http://localhost:3000/projetos/listar-membros/${idProjeto}`);
+      const data = await res.json(); // já vem [{ id: 1, nome: 'João' }, ...]
+      setMembros(data);
+    } catch (err) {
+      console.error('Erro ao carregar membros:', err);
+    }
+  };
 
+   const carregarTasks = async () => {
+    try {
+      const res = await fetch('http://localhost:3000/tasks');
+      const tasks = await res.json();
+
+      const colunasAtualizadas = initialColumns.map((coluna) => ({
+        ...coluna,
+        tickets: tasks.filter((task) => task.status === coluna.name),
+      }));
+
+      setColumns(colunasAtualizadas);
+    } catch (err) {
+      console.error('Erro ao carregar tasks:', err);
+    }
+  };
+
+  carregarMembros();
+  carregarTasks();
+}, []);
   return (
     <div style={{ display: 'flex', minHeight: '100vh', background: '#f4f6fa' }}>
       {/* Sidebar */}
@@ -450,12 +532,51 @@ const Dashboard = () => {
                 flexDirection: 'column',
                 gap: '0.3rem'
               }}>
-                ID do Responsável
-                <input
-                  type="text"
-                  placeholder="ID do usuário responsável"
-                  value={modalFields.id_responsavel}
-                  onChange={e => setModalFields(f => ({ ...f, id_responsavel: e.target.value }))}
+                  Responsável
+                <label style={{ /* seus estilos */ }}>
+                <select
+                  value={modalFields.id_responsavel || ''}
+                  onChange={(e) =>
+                    setModalFields((f) => ({
+                      ...f,
+                      id_responsavel: e.target.value === '' ? null : Number(e.target.value),
+                    }))
+                  }
+                  style={{
+                    background: '#fff',
+                    color: '#232946',
+                    border: '1.5px solid #eebbc3',
+                    borderRadius: '7px',
+                    padding: '0.6rem 1rem',
+                    fontSize: '1rem',
+                    marginTop: '0.2rem',
+                    marginBottom: '0.1rem',
+                    outline: 'none',
+                    transition: 'border 0.2s',
+                  }}
+                >
+                  <option value="">Sem responsável</option>
+                  {membros.map((m) => (
+                    <option key={m.id} value={m.id}>
+                      {m.nome}
+                    </option>
+                  ))}
+                </select>
+              </label>
+              </label>
+             <label style={{
+                fontSize: '1rem',
+                fontWeight: '500',
+                marginBottom: '0.3rem',
+                color: '#eebbc3',
+                display: 'flex',
+                flexDirection: 'column',
+                gap: '0.3rem'
+              }}>
+                Status
+                <select
+                  value={modalFields.status || 'A Fazer'}
+                  onChange={e => setModalFields(f => ({ ...f, status: e.target.value }))}
                   style={{
                     background: '#fff',
                     color: '#232946',
@@ -468,9 +589,13 @@ const Dashboard = () => {
                     outline: 'none',
                     transition: 'border 0.2s'
                   }}
-                />
+                >
+                  <option value="A Fazer">A Fazer</option>
+                  <option value="Em Andamento">Em Andamento</option>
+                  <option value="Em Revisão">Em Revisão</option>
+                  <option value="Concluído">Concluído</option>
+                </select>
               </label>
-              
               <label style={{
                 fontSize: '1rem',
                 fontWeight: '500',

@@ -9,7 +9,7 @@ export class MysqlService implements OnModuleInit {
     this.connection = await mysql.createConnection({
       host: 'localhost',
       user: 'root',
-      password: 'lLAWLIET0',
+      password: 'root',
       database: 'agile_platform_db',
     });
   }

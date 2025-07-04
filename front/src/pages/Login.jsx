@@ -26,9 +26,9 @@ const Login = () => {
     const data = await response.json();
 
     if (response.ok) {
-  
+       localStorage.setItem('id_usuario', data.id);
       alert('Login realizado com sucesso!');
-      navigate('/signup'); 
+      navigate('/dashboard'); 
     } else {
     
       alert(data.message || 'Erro ao fazer login');

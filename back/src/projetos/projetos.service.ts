@@ -19,7 +19,12 @@ export class ProjetosService {
 
   async listarMenbrosDoProjeto(id: number): Promise<any> {
     return this.mysqlService.query(
-      'SELECT id_usuario FROM ProjectMembers WHERE id_projeto = ?',
+      `
+    SELECT u.id, u.nome 
+    FROM ProjectMembers pm
+    JOIN Usuarios u ON u.id = pm.id_usuario
+    WHERE pm.id_projeto = ?
+    `,
       [id],
     );
   }

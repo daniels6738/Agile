@@ -23,6 +23,7 @@ export class PlanningPokerController {
   votar(
     @Body() body: { id_task: number; id_usuario: number; valor_voto: number },
   ) {
+    console.log(body.id_task);
     return this.planningPokerService.votarPLanningPoker(
       body.id_task,
       body.id_usuario,
@@ -30,8 +31,10 @@ export class PlanningPokerController {
     );
   }
 
-  @Post('concluir/:id_task')
-  concluir(@Param('id_task', ParseIntPipe) id_task: number) {
-    return this.planningPokerService.concluirVotacaoPLanningPoker(id_task);
+  @Get('concluir/:id_task')
+  concluir(@Param('id_task') id_task: String) {
+    return this.planningPokerService.concluirVotacaoPLanningPoker(
+      Number(id_task),
+    );
   }
 }
