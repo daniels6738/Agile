@@ -18,9 +18,17 @@ export class SprintsController {
     return this.sprintsService.listarSprints();
   }
 
-  @Get(':id')
-  async buscar(@Param('id') id: string) {
-    return this.sprintsService.buscarSprintPorId(Number(id));
+  @Get('buscar-sprint/:id_sprint')
+  async buscar(@Param('id_sprint') id_sprint: string) {
+    return this.sprintsService.buscarSprintPorId(Number(id_sprint));
+  }
+  @Get('buscar-sprints-projeto/:id_projeto')
+  async buscarSprintsDoProjeto(@Param('id_projeto') id_projeto: string) {
+    return this.sprintsService.buscarSprintsDoProjeto(Number(id_projeto));
+  }
+  @Get('buscar-sprint-atual/:id_projeto')
+  async buscarSprintAtualDeUmProjeto(@Param('id_projeto') id_projeto: string) {
+    return this.sprintsService.buscarSprintAtualDeUmProjeto(Number(id_projeto));
   }
   @Get('estatistica-usuario/:id_sprint/:id_usuario')
   async somarPontuacaoSprint(

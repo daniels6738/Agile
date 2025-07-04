@@ -28,6 +28,24 @@ export class ProjetosService {
       [id],
     );
   }
+  // Lista todos os projetos dos quais o usuário é membro
+  async listarProjetosPorUsuario(id_usuario: number): Promise<any> {
+    const sql = `
+    SELECT 
+      p.id,
+      p.nome,
+      pm.funcao AS funcao, 
+      (
+        SELECT COUNT(*) 
+        FROM ProjectMembers 
+        WHERE id_projeto = p.id
+      ) AS membersCount
+    FROM Projetos p
+    INNER JOIN ProjectMembers pm ON p.id = pm.id_projeto
+    WHERE pm.id_usuario = ?
+  `;
+    return this.mysqlService.query(sql, [id_usuario]);
+  }
 
   async criarProjeto(
     id_usuario: number,
@@ -50,7 +68,7 @@ export class ProjetosService {
   async adicionarUsuarioNoProjeto(
     id_projeto: number,
     id_usuario_admin: number,
-    id_usuario: number,
+    email: string,
     funcao: string,
   ): Promise<any> {
     const result = await this.mysqlService.query(
@@ -60,9 +78,18 @@ export class ProjetosService {
     if (result.length === 0) {
       return { message: 'projeto não existe ou usuario não é admin' };
     }
+    const [usuario] = await this.mysqlService.query(
+      'SELECT id FROM Usuarios WHERE email = ?',
+      [email],
+    );
+
+    if (!usuario) {
+      return { message: 'Usuário com esse email não encontrado' };
+    }
+
     const sql =
       'INSERT INTO ProjectMembers (id_projeto, id_usuario, funcao) VALUES (?, ?, ?)';
-    return this.mysqlService.query(sql, [id_projeto, id_usuario, funcao]);
+    return this.mysqlService.query(sql, [id_projeto, usuario.id, funcao]);
   }
 
   async atualizarProjeto(
@@ -94,15 +121,5 @@ export class ProjetosService {
     const sql =
       'DELETE FROM ProjectMembers WHERE id_projeto = ? AND id_usuario = ?';
     return this.mysqlService.query(sql, [id_projeto, id_usuario]);
-  }
-
-  // Lista todos os projetos dos quais o usuário é membro
-  async listarProjetosPorUsuario(id_usuario: number): Promise<any> {
-    const sql = `
-      SELECT p.* FROM Projetos p
-      INNER JOIN ProjectMembers pm ON p.id = pm.id_projeto
-      WHERE pm.id_usuario = ?
-    `;
-    return this.mysqlService.query(sql, [id_usuario]);
   }
 }

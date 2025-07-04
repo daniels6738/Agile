@@ -23,9 +23,13 @@ export class ProjetosController {
     return this.projetoService.buscarProjetoPorId(Number(id));
   }
 
-  @Get('listar-membros/:id')
-  async listarMembrosDoProjeto(@Param('id') id: string) {
-    return this.projetoService.listarMenbrosDoProjeto(Number(id));
+  @Get('listar-membros/:id_projeto')
+  async listarMembrosDoProjeto(@Param('id_projeto') id_projeto: string) {
+    return this.projetoService.listarMenbrosDoProjeto(Number(id_projeto));
+  }
+  @Get('listar-projetos/:id_usuario')
+  async listarProjetosPorUsuario(@Param('id_usuario') id_usuario: string) {
+    return this.projetoService.listarProjetosPorUsuario(Number(id_usuario));
   }
 
   @Post()
@@ -45,14 +49,14 @@ export class ProjetosController {
     body: {
       id_projeto: number;
       id_usuario_admin: number;
-      id_usuario: number;
+      email: string;
       funcao: string;
     },
   ) {
     return this.projetoService.adicionarUsuarioNoProjeto(
       body.id_projeto,
       body.id_usuario_admin,
-      body.id_usuario,
+      body.email,
       body.funcao,
     );
   }
@@ -85,10 +89,5 @@ export class ProjetosController {
       Number(id_usuario_admin),
       Number(id_usuario),
     );
-  }
-
-  @Get('usuario/:id')
-  async listarProjetosPorUsuario(@Param('id') id: string) {
-    return this.projetoService.listarProjetosPorUsuario(Number(id));
   }
 }

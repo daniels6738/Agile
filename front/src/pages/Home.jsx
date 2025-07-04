@@ -1,5 +1,6 @@
 import React, { useState, useEffect, useRef } from 'react';
 import '../styles/Home.css';
+import { useNavigate } from 'react-router-dom';
 
 const Home = () => {
   const [showCreateModal, setShowCreateModal] = useState(false);
@@ -11,13 +12,10 @@ const Home = () => {
   const [showSuggestions, setShowSuggestions] = useState(false);
   const [selectedProject, setSelectedProject] = useState(null);
   const suggestionsRef = useRef(null);
+  const [projetos, setProjetos] = useState([]);
+  const navigate = useNavigate();
+
   
-  // Mock data - replace with API calls
-  const mockProjects = [
-    { id: 1, nome: 'Sistema de Gestão', role: 'Admin', membersCount: 5 },
-    { id: 2, nome: 'App Mobile', role: 'Developer', membersCount: 8 },
-    { id: 3, nome: 'Dashboard Analytics', role: 'Designer', membersCount: 3 },
-  ];
   
   const mockUsers = [
     { id: 1, email: 'john.doe@example.com', name: 'John Doe' },
@@ -44,8 +42,29 @@ const Home = () => {
         setShowSuggestions(false);
       }
     };
+
+    const carregarProjetos = async () => {
+    const idUsuario = localStorage.getItem('id_usuario');
+
+    if (!idUsuario) {
+      console.warn('ID do usuário não encontrado no localStorage.');
+      return;
+    }
+
+    try {
+      const response = await fetch(`http://localhost:3000/projetos/listar-projetos/${idUsuario}`);
+      const data = await response.json();
+      setProjetos(data);
+    } catch (error) {
+      console.error('Erro ao buscar projetos do usuário:', error);
+    }
+  };
+  carregarProjetos();
+
     document.addEventListener('mousedown', handleClickOutside);
     return () => document.removeEventListener('mousedown', handleClickOutside);
+
+    
   }, []);
 
   const handleAddMember = (user) => {
@@ -66,11 +85,63 @@ const Home = () => {
     setMembros(membros.filter(m => m.email !== email));
   };
 
-  const handleSubmit = () => {
+  const handleSubmit = async () => {
     if (!nome || !descricao) {
       alert('Por favor, preencha todos os campos obrigatórios');
       return;
     }
+     const id_usuario = localStorage.getItem('id_usuario');
+     if (!id_usuario) {
+      alert('Usuário não logado');
+      return;
+  }
+    try {
+    // 1. Cria o projeto
+    const res = await fetch('http://localhost:3000/projetos', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({
+        id_usuario: Number(id_usuario),
+        nome,
+        descricao,
+      }),
+    });
+if (!res.ok) {
+      const err = await res.json();
+      alert(err.message || 'Erro ao criar projeto');
+      return;
+    }
+
+    const projetoCriado = await res.json();
+    const id_projeto = projetoCriado.id;
+
+    // 2. Adiciona os membros se houver
+    for (const membro of membros) {
+      await fetch('http://localhost:3000/projetos/adicionar-Membros', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          id_projeto,
+          id_usuario_admin: Number(id_usuario),
+          email: membro.email,
+          funcao: membro.funcao || 'Developer',
+        }),
+      });
+    }
+     alert('Projeto criado com sucesso!');
+    setNome('');
+    setDescricao('');
+    setMembros([]);
+    setShowCreateModal(false);
+     // Atualiza a lista de projetos para incluir o novo
+    const projetosAtualizados = await fetch(`http://localhost:3000/projetos/listar-projetos/${id_usuario}`);
+    const data = await projetosAtualizados.json();
+    setProjetos(data);
+
+  } catch (error) {
+    console.error('Erro ao criar projeto:', error);
+    alert('Erro de comunicação com o servidor');
+  }
     
     // TODO: Implement backend integration
     console.log('Creating project:', { nome, descricao, membros });
@@ -88,10 +159,14 @@ const Home = () => {
     // navigate(`/dashboard/${newProjectId}`);
   };
 
-  const handleProjectClick = (projectId) => {
-    // TODO: Navigate to project dashboard
-    console.log('Navigate to project:', projectId);
-    // navigate(`/dashboard/${projectId}`);
+  const handleProjectClick = (projeto) => {
+   // Salva os dados do projeto no localStorage, se necessário:
+  localStorage.setItem('id_projeto', projeto.id);
+  localStorage.setItem('nome_projeto', projeto.nome);
+  localStorage.setItem('cargo', projeto.funcao); // ou o nome da sua coluna real
+
+  // Navega para a página de dashboard
+  navigate('/dashboard');
   };
 
   return (
@@ -110,13 +185,13 @@ const Home = () => {
         </div>
         
         <div className="projects-list">
-          {mockProjects.map(project => (
+          {projetos.map(project  => (
             <div 
               key={project.id}
               className={`project-item ${selectedProject?.id === project.id ? 'active' : ''}`}
               onClick={() => {
                 setSelectedProject(project);
-                handleProjectClick(project.id);
+                handleProjectClick(project);
               }}
             >
               <div className="project-icon">
@@ -124,7 +199,7 @@ const Home = () => {
               </div>
               <div className="project-info">
                 <h3>{project.nome}</h3>
-                <p>{project.role} • {project.membersCount} membros</p>
+                <p>{project.funcao} • {project.membersCount} membros</p>
               </div>
             </div>
           ))}

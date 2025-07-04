@@ -24,6 +24,17 @@ export class TasksController {
     return this.tasksService.buscarTaskPorId(Number(id));
   }
 
+  @Get('buscar-tasks-sprint/:id_sprint/:id_projeto')
+  async buscarTasksPorSprint(
+    @Param('id_sprint') id_sprint: string,
+    @Param('id_projeto') id_projeto: string,
+  ) {
+    return this.tasksService.buscarTaskPorSprintDeUmProjeto(
+      Number(id_sprint),
+      Number(id_projeto),
+    );
+  }
+
   @Post()
   async criar(
     @Body()

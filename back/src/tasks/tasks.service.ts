@@ -13,6 +13,13 @@ export class TasksService {
     return this.mysqlService.query('SELECT * FROM Tasks WHERE id = ?', [id]);
   }
 
+  async buscarTaskPorSprintDeUmProjeto(id_sprint: number, id_projeto: number) {
+    return this.mysqlService.query(
+      'SELECT * FROM Tasks WHERE id_projeto = ? AND id_sprint = ?',
+      [id_projeto, id_sprint],
+    );
+  }
+
   async criarTask(data: {
     id_projeto: number;
     id_sprint?: number;

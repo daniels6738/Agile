@@ -16,13 +16,15 @@ const Dashboard = () => {
   const [draggedColumn, setDraggedColumn] = useState(null);
   const [dragOverColumn, setDragOverColumn] = useState(null);
   const [membros, setMembros] = useState([]);
-
+  const [sprints, setSprints] = useState([]);
+  const id_projeto = Number(localStorage.getItem('id_projeto'));
   const [modalFields, setModalFields] = useState({
+    id_sprint: null,
     titulo: '',
     descricao: '',
     id_responsavel: null,
     pontuacao: '',
-    id_projeto: 1, // Default project ID since we don't have project management yet
+    id_projeto: null, // Default project ID since we don't have project management yet
     status: "A FAZER"
   });
 
@@ -47,11 +49,12 @@ const Dashboard = () => {
   const closeTicketModal = () => {
     setShowTicketModal(false);
     setModalFields({ 
+      id_sprint: '',
       titulo: '', 
       descricao: '', 
       id_responsavel: '', 
       pontuacao: '',
-      id_projeto: 1
+      id_projeto: null
     });
   };
   const openColumnModal = () => setShowColumnModal(true);
@@ -64,16 +67,11 @@ const handleCreateTicket = async () => {
   if (!modalFields.titulo.trim()) return;
 
   // quando tiver o acesso aos ids retirar os comentarios
-  //const id_projeto = Number(localStorage.getItem('id_projeto')); 
-  //const id_sprint = modalFields.id_sprint || null;
-
-  // Valores fixos por enquanto
-  const id_projeto = 3;
-  const id_sprint = 1;
+   
 
   const taskPayload = {
     id_projeto,
-    id_sprint,
+    id_sprint: modalFields.id_sprint || null,
     id_responsavel: modalFields.id_responsavel || null,
     titulo: modalFields.titulo,
     descricao: modalFields.descricao,
@@ -95,7 +93,7 @@ const handleCreateTicket = async () => {
       return;
     }
 
-    // 2. Enviar pontuação separadamente
+    // 2. Enviar pontuação 
     if (modalFields.pontuacao) {
       await fetch('http://localhost:3000/planning-poker/votar', {
         method: 'POST',
@@ -107,7 +105,7 @@ const handleCreateTicket = async () => {
       });
     }
 
-    // 3. Atualizar estado local (opcional)
+    // 3. Atualizar estado local 
     const newTicket = {
       ...taskPayload,
       id: data.id, // id retornado do backend
@@ -188,8 +186,7 @@ const handleCreateTicket = async () => {
 useEffect(() => {
   const carregarMembros = async () => {
     try {
-      const idProjeto = 3;
-      const res = await fetch(`http://localhost:3000/projetos/listar-membros/${idProjeto}`);
+      const res = await fetch(`http://localhost:3000/projetos/listar-membros/${id_projeto}`);
       const data = await res.json(); // já vem [{ id: 1, nome: 'João' }, ...]
       setMembros(data);
     } catch (err) {
@@ -197,10 +194,30 @@ useEffect(() => {
     }
   };
 
-   const carregarTasks = async () => {
+    const carregarSprints = async () => {
     try {
-      const res = await fetch('http://localhost:3000/tasks');
-      const tasks = await res.json();
+    
+      const res = await fetch(`http://localhost:3000/sprints/buscar-sprints-projeto/${id_projeto}`);
+      const data = await res.json(); 
+      setSprints(data);
+    } catch (err) {
+      console.error('Erro ao carregar membros:', err);
+    }
+  };
+
+   const carregarTasksDaSprint = async () => {
+    try {
+      const res = await fetch (`http://localhost:3000/sprints/buscar-sprint-atual/${id_projeto}`);
+      const sprintAtual = await res.json();
+      console.log(id_projeto, sprintAtual.id);
+
+       if (!sprintAtual || !sprintAtual.id) {
+        console.warn('Nenhuma sprint atual encontrada');
+        return;
+       }
+
+      const consulta = await fetch(`http://localhost:3000/tasks/buscar-tasks-sprint/${sprintAtual.id}/${id_projeto}`);
+      const tasks = await consulta.json();
 
       const colunasAtualizadas = initialColumns.map((coluna) => ({
         ...coluna,
@@ -214,7 +231,8 @@ useEffect(() => {
   };
 
   carregarMembros();
-  carregarTasks();
+  carregarTasksDaSprint();
+  carregarSprints();
 }, []);
   return (
     <div style={{ display: 'flex', minHeight: '100vh', background: '#f4f6fa' }}>
@@ -532,6 +550,58 @@ useEffect(() => {
                 flexDirection: 'column',
                 gap: '0.3rem'
               }}>
+
+                  Atribuir a Sprint
+                <label style={{  }}>
+                <select
+                  value={modalFields.id_sprint || ''}
+                  onChange={(e) =>
+                    setModalFields((f) => ({
+                      ...f,
+                      id_sprint: e.target.value === '' ? null : Number(e.target.value),
+                    }))
+                  }
+                  style={{
+                    background: '#fff',
+                    color: '#232946',
+                    border: '1.5px solid #eebbc3',
+                    borderRadius: '7px',
+                    padding: '0.6rem 1rem',
+                    fontSize: '1rem',
+                    marginTop: '0.2rem',
+                    marginBottom: '0.1rem',
+                    outline: 'none',
+                    transition: 'border 0.2s',
+                  }}
+                >
+                  <option value="">Sem Atribuições</option>
+                  {sprints.map((m) => (
+                    <option key={m.id} value={m.id}>
+                      {m.nome}
+                    </option>
+                  ))}
+                </select>
+              </label>
+              </label>
+             <label style={{
+                fontSize: '1rem',
+                fontWeight: '500',
+                marginBottom: '0.3rem',
+                color: '#eebbc3',
+                display: 'flex',
+                flexDirection: 'column',
+                gap: '0.3rem'
+              }}>
+                 <label style={{
+                fontSize: '1rem',
+                fontWeight: '500',
+                marginBottom: '0.3rem',
+                color: '#eebbc3',
+                display: 'flex',
+                flexDirection: 'column',
+                gap: '0.3rem'
+              }}>
+                
                   Responsável
                 <label style={{ /* seus estilos */ }}>
                 <select
@@ -572,7 +642,9 @@ useEffect(() => {
                 display: 'flex',
                 flexDirection: 'column',
                 gap: '0.3rem'
-              }}>
+              }}></label>
+
+
                 Status
                 <select
                   value={modalFields.status || 'A Fazer'}

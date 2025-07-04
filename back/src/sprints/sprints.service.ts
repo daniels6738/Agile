@@ -13,6 +13,23 @@ export class SprintsService {
   async buscarSprintPorId(id: number) {
     return this.mysqlService.query('SELECT * FROM Sprints WHERE id = ?', [id]);
   }
+  async buscarSprintAtualDeUmProjeto(id_projeto: number): Promise<any> {
+    const sql = `
+    SELECT * FROM Sprints
+    WHERE id_projeto = ?
+      AND CURDATE() BETWEEN data_inicio AND data_fim
+    LIMIT 1
+  `;
+    const [sprintAtual] = await this.mysqlService.query(sql, [id_projeto]);
+    return sprintAtual || null;
+  }
+
+  async buscarSprintsDoProjeto(id_projeto: number) {
+    return this.mysqlService.query(
+      'SELECT * FROM Sprints WHERE id_projeto = ?',
+      [id_projeto],
+    );
+  }
 
   async criarSprint(
     id_projeto: number,
