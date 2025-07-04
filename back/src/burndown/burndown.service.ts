@@ -13,7 +13,7 @@ export class BurndownService {
     width: number,
     height: number,
   ): Promise<{ message: string; image: string }> {
-    // 1. Buscar dados da sprint
+    // Buscar dados da sprint
     const [sprint] = await this.mysqlService.query(
       'SELECT nome, data_inicio, data_fim FROM Sprints WHERE id = ?',
       [id_sprint],
@@ -28,21 +28,25 @@ export class BurndownService {
     const fim = dayjs(sprint.data_fim);
     const diasSprint = fim.diff(inicio, 'day');
 
-    // 2. Total de pontos da sprint
+    // Total de pontos da sprint
     const [{ total }] = await this.mysqlService.query(
       'SELECT SUM(pontuacao) as total FROM Tasks WHERE id_sprint = ?',
       [id_sprint],
     );
+
+    if (total === 0) {
+      return { message: 'Sprint sem pontuação de tasks definidas', image: '' };
+    }
     const pontosTotais = Number(total || 0);
 
-    // 3. Buscar tasks concluídas
+    // Buscar tasks concluídas
     const concluidas = await this.mysqlService.query(
       `SELECT data_atualizacao, pontuacao FROM Tasks 
        WHERE id_sprint = ? AND status = 'Concluído'`,
       [id_sprint],
     );
 
-    // 4. Calcular progresso real (quantos pontos restam por dia)
+    //Calcular progresso real (quantos pontos restam por dia)
     const progressoPorDia: Record<string, number> = {};
     for (let i = 0; i <= diasSprint; i++) {
       const dia = inicio.add(i, 'day').format('YYYY-MM-DD');
@@ -64,12 +68,12 @@ export class BurndownService {
       progresso.push(restante < 0 ? 0 : Number(restante.toFixed(1)));
     }
 
-    // 5. Calcular linha ideal
+    // Calcular linha ideal
     const ideal: number[] = Array.from({ length: diasSprint + 1 }, (_, i) =>
       Number((pontosTotais * ((diasSprint - i) / diasSprint)).toFixed(1)),
     );
 
-    // 6. Gerar gráfico
+    // Gerar gráfico
     const canvas = new ChartJSNodeCanvas({ width, height });
     const labels = Array.from({ length: diasSprint + 1 }, (_, i) =>
       inicio.add(i, 'day').format('DD/MM'),
@@ -112,28 +116,63 @@ export class BurndownService {
 
     const image = await canvas.renderToDataURL(config);
 
-    // 7. Salvar no banco
-    await this.mysqlService.query(
-      `INSERT INTO GraficosBurndown 
-      (id_sprint, nome_sprint, dias_sprint, pontos_totais, progresso_json, imagem_base64)
-      VALUES (?, ?, ?, ?, ?, ?)`,
-      [
-        id_sprint,
-        nomeSprint,
-        diasSprint,
-        pontosTotais,
-        JSON.stringify(progresso),
-        image,
-      ],
+    //  Salvar no banco
+    const [burndownExiste] = await this.mysqlService.query(
+      'SELECT * FROM GraficosBurndown WHERE id_sprint = ?',
+      [id_sprint],
     );
 
-    return {
-      message: 'Gráfico gerado e salvo com sucesso.',
-      image,
-    };
+    //se a sprint não tiver o grafico
+    if (!burndownExiste) {
+      await this.mysqlService.query(
+        `INSERT INTO GraficosBurndown 
+      (id_sprint, nome_sprint, dias_sprint, pontos_totais, progresso_json, imagem_base64)
+      VALUES (?, ?, ?, ?, ?, ?)`,
+        [
+          id_sprint,
+          nomeSprint,
+          diasSprint,
+          pontosTotais,
+          JSON.stringify(progresso),
+          image,
+        ],
+      );
+
+      return {
+        message: 'Gráfico gerado e salvo com sucesso.',
+        image,
+      };
+    }
+    //se a sprint ja tiver o grafico
+    else {
+      await this.mysqlService.query(
+        `UPDATE GraficosBurndown SET
+      id_sprint = ?, nome_sprint = ?, dias_sprint = ?, pontos_totais = ?, progresso_json = ?, imagem_base64 = ? WHERE id = ?
+      `,
+        [
+          id_sprint,
+          nomeSprint,
+          diasSprint,
+          pontosTotais,
+          JSON.stringify(progresso),
+          image,
+          burndownExiste.id,
+        ],
+      );
+
+      return {
+        message: 'Gráfico atualizado e salvo com sucesso.',
+        image,
+      };
+    }
   }
   async buscarBurnDown(id_sprint: number): Promise<any> {
     const sql = 'SELECT * FROM GraficosBurndown WHERE id_sprint = ?';
+    return this.mysqlService.query(sql, [id_sprint]);
+  }
+
+  async deletarBurnDown(id_sprint: number): Promise<any> {
+    const sql = 'DELETE FROM GraficosBurndown WHERE id_sprint = ?';
     return this.mysqlService.query(sql, [id_sprint]);
   }
 }
