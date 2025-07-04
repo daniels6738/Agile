@@ -13,7 +13,7 @@ import { BurndownService } from './burndown.service';
 export class BurndownController {
   constructor(private readonly burndownService: BurndownService) {}
 
-  @Post()
+  @Post('criar')
   async criarBurnDown(
     @Body() body: { id_sprint: number; width: number; height: number },
   ) {
@@ -24,8 +24,13 @@ export class BurndownController {
     );
   }
 
-  @Get(':id_sprint')
+  @Get('buscar/:id_sprint')
   async buscarBurnDown(@Param('id_sprint') id_sprint: string) {
     return this.burndownService.buscarBurnDown(Number(id_sprint));
+  }
+
+  @Delete('excluir/:id_sprint')
+  async excluirBurnDown(@Param('id_sprint') id_sprint: string) {
+    return this.burndownService.deletarBurnDown(Number(id_sprint));
   }
 }

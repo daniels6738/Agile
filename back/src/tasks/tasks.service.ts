@@ -36,7 +36,7 @@ export class TasksService {
       pontuacao,
     } = data;
 
-    return this.mysqlService.query(sql, [
+    const insertId: any = await this.mysqlService.insert(sql, [
       id_projeto,
       id_sprint || null,
       id_responsavel || null,
@@ -45,6 +45,7 @@ export class TasksService {
       status,
       pontuacao || null,
     ]);
+    return { id: insertId };
   }
 
   async atualizarTask(

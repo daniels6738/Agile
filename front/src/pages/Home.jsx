@@ -27,7 +27,6 @@ const Home = () => {
     { id: 5, email: 'alex.brown@example.com', name: 'Alex Brown' },
   ];
 
-  // Filter suggestions based on input
   const getSuggestions = (input) => {
     if (!input) return [];
     const lowercased = input.toLowerCase();
@@ -39,7 +38,6 @@ const Home = () => {
 
   const suggestions = getSuggestions(currentMemberInput);
 
-  // Handle click outside to close suggestions
   useEffect(() => {
     const handleClickOutside = (event) => {
       if (suggestionsRef.current && !suggestionsRef.current.contains(event.target)) {
@@ -51,13 +49,11 @@ const Home = () => {
   }, []);
 
   const handleAddMember = (user) => {
-    // Check if member already exists
     if (membros.find(m => m.email === user.email)) {
       alert('Este membro já foi adicionado');
       return;
     }
     
-    // Use selected role or default to 'Developer'
     const role = currentMemberRole || 'Developer';
     
     setMembros([...membros, { ...user, funcao: role }]);
