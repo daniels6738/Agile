@@ -1,4 +1,5 @@
 import React, { useEffect, useState } from 'react';
+import { useNavigate } from 'react-router-dom';
 
 const initialColumns = [
   { id: 1, name: 'A Fazer', tickets: [] },
@@ -8,6 +9,7 @@ const initialColumns = [
 ];
 
 const Dashboard = () => {
+  const navigate = useNavigate();
   const [columns, setColumns] = useState(initialColumns);
   const [showTicketModal, setShowTicketModal] = useState(false);
   const [showColumnModal, setShowColumnModal] = useState(false);
@@ -36,7 +38,7 @@ const Dashboard = () => {
 
   const sidebarItems = [
     { icon: '🏠', label: 'Dashboard' },
-    { icon: '📝', label: 'Projetos' },
+    { icon: '📝', label: 'Projetos', path: '/home' },
     { icon: '👤', label: 'Perfil' },
     { icon: '⚙️', label: 'Configurações' },
   ];
@@ -349,6 +351,7 @@ useEffect(() => {
               cursor: 'pointer',
               transition: 'background 0.2s'
             }}
+            onClick={() => navigate(item.path)}
             onMouseEnter={(e) => e.currentTarget.style.background = '#393e6e'}
             onMouseLeave={(e) => e.currentTarget.style.background = 'transparent'}
             >
