@@ -18,6 +18,7 @@ const Dashboard = () => {
   const [membros, setMembros] = useState([]);
   const [sprints, setSprints] = useState([]);
   const id_projeto = Number(localStorage.getItem('id_projeto'));
+  const id_usuario_logado = Number(localStorage.getItem('id_usuario'));
   const [modalFields, setModalFields] = useState({
     id_sprint: null,
     titulo: '',
@@ -64,10 +65,7 @@ const Dashboard = () => {
   };
 
 const handleCreateTicket = async () => {
-  if (!modalFields.titulo.trim()) return;
-
-  // quando tiver o acesso aos ids retirar os comentarios
-   
+  if (!modalFields.titulo.trim()) return;   
 
   const taskPayload = {
     id_projeto,
@@ -80,6 +78,7 @@ const handleCreateTicket = async () => {
 
   try {
     // 1. Criar tarefa
+
     const response = await fetch('http://localhost:3000/tasks', {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
@@ -100,25 +99,12 @@ const handleCreateTicket = async () => {
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
           id_task: data.id,
+          id_usuario: id_usuario_logado,
           valor_voto: Number(modalFields.pontuacao),
         }),
       });
     }
-
-    // 3. Atualizar estado local 
-    const newTicket = {
-      ...taskPayload,
-      id: data.id, // id retornado do backend
-      pontuacao: modalFields.pontuacao ? Number(modalFields.pontuacao) : null,
-    };
-
-    setColumns(columns =>
-      columns.map(col =>
-        col.name === 'A Fazer'
-          ? { ...col, tickets: [...col.tickets, newTicket] }
-          : col
-      )
-    );
+    await carregarTasksDaSprint();
 
     closeTicketModal();
     alert('Tarefa criada com sucesso!');
@@ -163,12 +149,28 @@ const handleCreateTicket = async () => {
     setDragOverColumn(null);
   };
 
-  const handleTicketDrop = (colId, colName) => {
-    if (!draggedTicket) return;
-    
-    const updatedTicket = { ...draggedTicket, status: colName };
-    delete updatedTicket.fromColId;
-    
+  const handleTicketDrop = async (colId, colName) => {
+  if (!draggedTicket) return;
+
+  const updatedTicket = { ...draggedTicket, status: colName };
+  delete updatedTicket.fromColId;
+
+  try {
+    // Atualiza o status no backend
+    const res = await fetch(`http://localhost:3000/tasks/${draggedTicket.id}/status`, {
+      method: 'PATCH',
+      headers: {
+        'Content-Type': 'application/json',
+      },
+      body: JSON.stringify({ status: colName }),
+    });
+
+    if (!res.ok) {
+      console.error('Erro ao atualizar status da tarefa');
+      return;
+    }
+
+    // Atualiza no front-end
     setColumns(cols => {
       const newCols = cols.map(col =>
         col.id === draggedTicket.fromColId
@@ -181,9 +183,13 @@ const handleCreateTicket = async () => {
           : col
       );
     });
+
     setDraggedTicket(null);
+  } catch (err) {
+    console.error('Erro na requisição PATCH:', err);
+  }
   };
-useEffect(() => {
+
   const carregarMembros = async () => {
     try {
       const res = await fetch(`http://localhost:3000/projetos/listar-membros/${id_projeto}`);
@@ -194,18 +200,8 @@ useEffect(() => {
     }
   };
 
-    const carregarSprints = async () => {
-    try {
-    
-      const res = await fetch(`http://localhost:3000/sprints/buscar-sprints-projeto/${id_projeto}`);
-      const data = await res.json(); 
-      setSprints(data);
-    } catch (err) {
-      console.error('Erro ao carregar membros:', err);
-    }
-  };
 
-   const carregarTasksDaSprint = async () => {
+  const carregarTasksDaSprint = async () => {
     try {
       const res = await fetch (`http://localhost:3000/sprints/buscar-sprint-atual/${id_projeto}`);
       const sprintAtual = await res.json();
@@ -229,7 +225,19 @@ useEffect(() => {
       console.error('Erro ao carregar tasks:', err);
     }
   };
+  
+  const carregarSprints = async () => {
+    try {
+    
+      const res = await fetch(`http://localhost:3000/sprints/buscar-sprints-projeto/${id_projeto}`);
+      const data = await res.json(); 
+      setSprints(data);
+    } catch (err) {
+      console.error('Erro ao carregar membros:', err);
+    }
 
+  };
+useEffect(() => {
   carregarMembros();
   carregarTasksDaSprint();
   carregarSprints();

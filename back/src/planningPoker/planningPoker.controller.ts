@@ -14,9 +14,11 @@ import { PlanningPokerService } from './planningPoker.service';
 export class PlanningPokerController {
   constructor(private readonly planningPokerService: PlanningPokerService) {}
 
-  @Get(':id')
-  async listarVotosPlanningPoker(@Param('id') id: string) {
-    return this.planningPokerService.listarVotosDaTaskPlanningPoker(Number(id));
+  @Get(':id_task')
+  async listarVotosPlanningPoker(@Param('id_task') id_task: string) {
+    return this.planningPokerService.listarVotosDaTaskPlanningPoker(
+      Number(id_task),
+    );
   }
 
   @Post('votar')

@@ -8,7 +8,7 @@ export class ProjetosService {
   // CRUDS projetos
 
   async listarProjetos(): Promise<any> {
-    const sql = 'SELECT * FROM ProjectMembers';
+    const sql = 'SELECT * FROM Projetos';
     return this.mysqlService.query(sql);
   }
 
