@@ -17,6 +17,7 @@ export class BurndownController {
   async criarBurnDown(
     @Body() body: { id_sprint: number; width: number; height: number },
   ) {
+    console.log('entrou : ', body.id_sprint, body.width, body.height);
     return this.burndownService.gerarBurndown(
       body.id_sprint,
       body.width,

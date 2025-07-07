@@ -14,10 +14,12 @@ const Dashboard = () => {
   const [showTicketModal, setShowTicketModal] = useState(false);
   const [showColumnModal, setShowColumnModal] = useState(false);
   const [showCriarSprint, setShowCriarSprint] = useState(false);
+  const [showBurnDown, setShowBurnDown] = useState(false);
   const [newColumnName, setNewColumnName] = useState('');
   const [draggedTicket, setDraggedTicket] = useState(null);
   const [draggedColumn, setDraggedColumn] = useState(null);
   const [dragOverColumn, setDragOverColumn] = useState(null);
+  const [burndownImg, setBurndownImg] = useState(null);
   const [membros, setMembros] = useState([]);
   const [sprints, setSprints] = useState([]);
   const id_projeto = Number(localStorage.getItem('id_projeto'));
@@ -87,6 +89,17 @@ const Dashboard = () => {
     setShowColumnModal(false);
     setNewColumnName('');
   };
+
+  const openBurnDown = () => setShowBurnDown(true);
+
+  const closeBurnDown = () => {
+    setShowBurnDown(false);
+    setBurndownImg(null);
+    setModalFields({
+      id_sprint: null
+    });
+  };
+
  
   const handleCreateTicket = async () => {
   if (!modalFields.titulo.trim()) return;   
@@ -137,6 +150,36 @@ const Dashboard = () => {
     alert('Erro na comunicação com o servidor.');
   }
   };
+
+
+
+const handleCriarBurnDown = async () => {
+  if (!modalFields.id_sprint) {
+    alert('Por favor, selecione uma sprint');
+    return;
+  }
+
+  try {
+    const response = await fetch('http://localhost:3000/burndown/criar', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({
+        id_sprint: Number(modalFields.id_sprint),
+        width: 800,
+        height: 400,
+      }),
+    });
+
+    const data = await response.json(); 
+    setBurndownImg(data.image);
+  } catch (err) {
+    console.error('Erro ao gerar gráfico:', err);
+    alert('Erro ao gerar gráfico de Burndown');
+  }
+};
+
+
+
 
 
 
@@ -419,6 +462,22 @@ useEffect(() => {
               }}
             >
               Criar Sprint
+            </button>
+
+              <button 
+              onClick={openBurnDown} 
+              style={{
+                padding: '0.5rem 1.2rem',
+                border: 'none',
+                borderRadius: '6px',
+                fontSize: '1rem',
+                cursor: 'pointer',
+                transition: 'background 0.2s',
+                background: '#232946',
+                color: '#fff'
+              }}
+            >
+              Gerar BurnDown
             </button>
           </div>
         </div>
@@ -1011,6 +1070,148 @@ useEffect(() => {
         </div>
       )}
 
+
+
+
+
+
+
+
+
+
+
+
+
+{/* Criar BurnDown */}
+{showBurnDown && (
+  <div style={{
+    position: 'fixed',
+    top: 0, left: 0, right: 0, bottom: 0,
+    background: 'rgba(0,0,0,0.25)',
+    display: 'flex',
+    alignItems: 'center',
+    justifyContent: 'center',
+    zIndex: 1000
+  }} onClick={closeBurnDown}>
+    <div style={{
+      background: '#232946',
+      color: '#fff',
+      borderRadius: '14px',
+      padding: '2.5rem',
+      minWidth: '600px',
+      maxWidth: '1000px',
+      width: '90%',
+      boxShadow: '0 2px 24px rgba(0,0,0,0.18)',
+      position: 'relative'
+    }} onClick={e => e.stopPropagation()}>
+      <h3 style={{
+        fontSize: '1.4rem',
+        fontWeight: 'bold',
+        marginBottom: '1.5rem',
+        color: '#fff',
+        letterSpacing: '0.5px'
+      }}>Gerar Burndown</h3>
+
+      <div style={{ display: 'flex', flexDirection: 'column', gap: '1.5rem' }}>
+        {/* Seleção de Sprint */}
+        <label style={{
+          fontSize: '1rem',
+          fontWeight: '500',
+          color: '#eebbc3',
+          display: 'flex',
+          flexDirection: 'column',
+          gap: '0.3rem'
+        }}>
+          Sprint
+          <select
+            value={modalFields.id_sprint || ''}
+            onChange={(e) =>
+              setModalFields((f) => ({
+                ...f,
+                id_sprint: e.target.value === '' ? null : Number(e.target.value),
+              }))
+            }
+            style={{
+              background: '#fff',
+              color: '#232946',
+              border: '1.5px solid #eebbc3',
+              borderRadius: '7px',
+              padding: '0.6rem 1rem',
+              fontSize: '1rem',
+              marginTop: '0.2rem',
+              outline: 'none',
+            }}
+          >
+            <option value="">Selecione a sprint</option>
+            {sprints.map((m) => (
+              <option key={m.id} value={m.id}>
+                {m.nome}
+              </option>
+            ))}
+          </select>
+        </label>
+
+        {/* Gráfico e Botões - Lado a Lado */}
+        <div style={{ display: 'flex', gap: '2rem', alignItems: 'flex-start' }}>
+          {/* Botões sempre do lado esquerdo */}
+          <div style={{ display: 'flex', flexDirection: 'column', gap: '1rem' }}>
+            <button
+              type="button"
+              onClick={closeBurnDown}
+              style={{
+                padding: '0.5rem 1.2rem',
+                border: '1.5px solid #eebbc3',
+                borderRadius: '6px',
+                fontSize: '1rem',
+                cursor: 'pointer',
+                background: '#fff',
+                color: '#232946',
+                fontWeight: 'bold',
+                minWidth: '140px'
+              }}
+            >
+              Cancelar
+            </button>
+            <button
+              type="button"
+              onClick={handleCriarBurnDown}
+              style={{
+                padding: '0.5rem 1.2rem',
+                border: 'none',
+                borderRadius: '6px',
+                fontSize: '1rem',
+                cursor: 'pointer',
+                background: '#eebbc3',
+                color: '#232946',
+                fontWeight: 'bold',
+                minWidth: '140px'
+              }}
+            >
+              Gerar
+            </button>
+          </div>
+
+          {/* Gráfico grande do lado direito */}
+          {burndownImg && (
+            <div style={{ flexGrow: 1 }}>
+              <h4 style={{ color: '#eebbc3', marginBottom: '0.5rem' }}>Gráfico Gerado:</h4>
+              <img
+                src={burndownImg.startsWith('data:image') ? burndownImg : `data:image/png;base64,${burndownImg}`}
+                alt="Burndown Chart"
+                style={{
+                  width: '100%',
+                  maxWidth: '700px',
+                  borderRadius: '8px',
+                  border: '2px solid #eebbc3'
+                }}
+              />
+            </div>
+          )}
+        </div>
+      </div>
+    </div>
+  </div>
+)}
 
 
 

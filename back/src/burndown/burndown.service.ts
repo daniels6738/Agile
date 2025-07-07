@@ -74,7 +74,11 @@ export class BurndownService {
     );
 
     // Gerar gráfico
-    const canvas = new ChartJSNodeCanvas({ width, height });
+    const canvas = new ChartJSNodeCanvas({
+      width,
+      height,
+      backgroundColour: 'white',
+    });
     const labels = Array.from({ length: diasSprint + 1 }, (_, i) =>
       inicio.add(i, 'day').format('DD/MM'),
     );
@@ -89,14 +93,14 @@ export class BurndownService {
             data: ideal,
             borderColor: 'blue',
             fill: false,
-            tension: 0.2,
+            tension: 0.0,
           },
           {
             label: 'Real',
             data: progresso,
             borderColor: 'red',
             fill: false,
-            tension: 0.2,
+            tension: 0.0,
           },
         ],
       },
