@@ -11,6 +11,7 @@ const Dashboard = () => {
   const [columns, setColumns] = useState(initialColumns);
   const [showTicketModal, setShowTicketModal] = useState(false);
   const [showColumnModal, setShowColumnModal] = useState(false);
+  const [showCriarSprint, setShowCriarSprint] = useState(false);
   const [newColumnName, setNewColumnName] = useState('');
   const [draggedTicket, setDraggedTicket] = useState(null);
   const [draggedColumn, setDraggedColumn] = useState(null);
@@ -25,9 +26,13 @@ const Dashboard = () => {
     descricao: '',
     id_responsavel: null,
     pontuacao: '',
-    id_projeto: null, // Default project ID since we don't have project management yet
-    status: "A FAZER"
+    status: "A FAZER",
+    nome_sprint: '',
+    data_inicio: '',
+    data_fim: ''
+
   });
+  
 
   const sidebarItems = [
     { icon: '🏠', label: 'Dashboard' },
@@ -46,7 +51,12 @@ const Dashboard = () => {
     setShowColumnModal(false);
   };
 
-  const openTicketModal = () => setShowTicketModal(true);
+  const openTicketModal = () => {
+    carregarMembros();
+    carregarSprints();
+    setShowTicketModal(true);
+  }
+
   const closeTicketModal = () => {
     setShowTicketModal(false);
     setModalFields({ 
@@ -55,16 +65,28 @@ const Dashboard = () => {
       descricao: '', 
       id_responsavel: '', 
       pontuacao: '',
-      id_projeto: null
     });
   };
+
+  const openCriarSprint = () => setShowCriarSprint(true);
+  
+  const closeCriarSprint = () => {
+    setShowCriarSprint(false);
+    setModalFields({ 
+      nome_sprint: '',
+      data_inicio: '',
+      data_fim: ''
+    });
+  };
+
   const openColumnModal = () => setShowColumnModal(true);
+
   const closeColumnModal = () => {
     setShowColumnModal(false);
     setNewColumnName('');
   };
-
-const handleCreateTicket = async () => {
+ 
+  const handleCreateTicket = async () => {
   if (!modalFields.titulo.trim()) return;   
 
   const taskPayload = {
@@ -112,7 +134,62 @@ const handleCreateTicket = async () => {
     console.error('Erro ao criar ticket:', error);
     alert('Erro na comunicação com o servidor.');
   }
+  };
+
+
+
+
+ const handleCriarSprint = async () => {
+  const { nome_sprint, data_inicio, data_fim } = modalFields;
+
+  if (!nome_sprint || !data_inicio || !data_fim) {
+    alert('Preencha todos os campos da sprint.');
+    return;
+  }
+
+  // Convertendo a data para o formato "AAAA/MM/DD"
+  const formatarData = (dataStr) => {
+    const data = new Date(dataStr);
+    const ano = data.getFullYear();
+    const mes = String(data.getMonth() + 1).padStart(2, '0');
+    const dia = String(data.getDate()).padStart(2, '0');
+    return `${ano}/${mes}/${dia}`;
+  };
+
+  const payload = {
+    id_projeto,
+    nome: nome_sprint,
+    data_inicio: formatarData(data_inicio),
+    data_fim: formatarData(data_fim),
+  };
+
+  try {
+    const response = await fetch('http://localhost:3000/sprints', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify(payload),
+    });
+
+    const data = await response.json();
+
+    if (!response.ok) {
+      console.error(data);
+      alert(data.message || 'Erro ao criar sprint.');
+      return;
+    }
+
+    alert('Sprint criada com sucesso!');
+
+    closeCriarSprint();
+    
+  } catch (error) {
+    console.error('Erro ao criar sprint:', error);
+    alert('Erro na comunicação com o servidor.');
+  }
 };
+
+
+
 
 
   const handleDragStart = (ticket, colId) => {
@@ -200,7 +277,6 @@ const handleCreateTicket = async () => {
     }
   };
 
-
   const carregarTasksDaSprint = async () => {
     try {
       const res = await fetch (`http://localhost:3000/sprints/buscar-sprint-atual/${id_projeto}`);
@@ -225,7 +301,7 @@ const handleCreateTicket = async () => {
       console.error('Erro ao carregar tasks:', err);
     }
   };
-  
+
   const carregarSprints = async () => {
     try {
     
@@ -237,11 +313,13 @@ const handleCreateTicket = async () => {
     }
 
   };
+
 useEffect(() => {
   carregarMembros();
   carregarTasksDaSprint();
   carregarSprints();
 }, []);
+
   return (
     <div style={{ display: 'flex', minHeight: '100vh', background: '#f4f6fa' }}>
       {/* Sidebar */}
@@ -323,6 +401,21 @@ useEffect(() => {
               }}
             >
               Criar ticket
+            </button>
+            <button 
+              onClick={openCriarSprint} 
+              style={{
+                padding: '0.5rem 1.2rem',
+                border: 'none',
+                borderRadius: '6px',
+                fontSize: '1rem',
+                cursor: 'pointer',
+                transition: 'background 0.2s',
+                background: '#232946',
+                color: '#fff'
+              }}
+            >
+              Criar Sprint
             </button>
           </div>
         </div>
@@ -452,6 +545,15 @@ useEffect(() => {
           ))}
         </div>
       </main>
+
+
+
+
+
+
+
+
+
 
       {/* Ticket Modal */}
       {showTicketModal && (
@@ -752,6 +854,182 @@ useEffect(() => {
           </div>
         </div>
       )}
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+      {/* Criar Sprint */}
+      {showCriarSprint && (
+        <div style={{
+          position: 'fixed',
+          top: 0, left: 0, right: 0, bottom: 0,
+          background: 'rgba(0,0,0,0.25)',
+          display: 'flex',
+          alignItems: 'center',
+          justifyContent: 'center',
+          zIndex: 1000
+        }} onClick={closeCriarSprint}>
+          <div style={{
+            background: '#232946',
+            color: '#fff',
+            borderRadius: '14px',
+            padding: '2.5rem 2.5rem 2rem 2.5rem',
+            minWidth: '340px',
+            boxShadow: '0 2px 24px rgba(0,0,0,0.18)',
+            position: 'relative'
+          }} onClick={e => e.stopPropagation()}>
+            <h3 style={{
+              fontSize: '1.4rem',
+              fontWeight: 'bold',
+              marginBottom: '1.5rem',
+              color: '#fff',
+              letterSpacing: '0.5px'
+            }}>Criar Sprint</h3>
+            
+            <div style={{
+              display: 'flex',
+              flexDirection: 'column',
+              gap: '1.2rem'
+            }}>
+              <label style={{
+                fontSize: '1rem',
+                fontWeight: '500',
+                marginBottom: '0.3rem',
+                color: '#eebbc3',
+                display: 'flex',
+                flexDirection: 'column',
+                gap: '0.3rem'
+              }}>
+                Nome
+                <input
+                  type="text"
+                  placeholder="Nome da Sprint"
+                  value={modalFields.nome_sprint}
+                  onChange={e => setModalFields(f => ({ ...f, nome_sprint: e.target.value }))}
+                  onKeyDown={e => e.key === 'Enter' && handleCriarSprint()}
+                  required
+                  style={{
+                    background: '#fff',
+                    color: '#232946',
+                    border: '1.5px solid #eebbc3',
+                    borderRadius: '7px',
+                    padding: '0.6rem 1rem',
+                    fontSize: '1rem',
+                    marginTop: '0.2rem',
+                    marginBottom: '0.1rem',
+                    outline: 'none',
+                    transition: 'border 0.2s'
+                  }}
+                />
+              </label>
+              
+              <label style={{
+                fontSize: '1rem',
+                fontWeight: '500',
+                marginBottom: '0.3rem',
+                color: '#eebbc3',
+                display: 'flex',
+                flexDirection: 'column',
+                gap: '0.3rem'
+              }}>
+                Data inicio
+                <input
+                  type="date"
+                  value={modalFields.data_inicio}
+                  onChange={(e) => setModalFields({ ...modalFields, data_inicio: e.target.value })}
+                  className="form-input"
+                />Data Fim
+                 <input
+                  type="date"
+                  value={modalFields.data_fim}
+                  onChange={(e) => setModalFields({ ...modalFields, data_fim: e.target.value })}
+                  className="form-input"
+                />
+              </label>
+              
+              
+              
+              <div style={{
+                display: 'flex',
+                justifyContent: 'flex-end',
+                gap: '1rem',
+                marginTop: '0.5rem'
+              }}>
+                <button 
+                  type="button" 
+                  onClick={closeCriarSprint} 
+                  style={{
+                    padding: '0.5rem 1.2rem',
+                    border: '1.5px solid #eebbc3',
+                    borderRadius: '6px',
+                    fontSize: '1rem',
+                    cursor: 'pointer',
+                    transition: 'background 0.2s',
+                    background: '#fff',
+                    color: '#232946',
+                    fontWeight: 'bold'
+                  }}
+                >
+                  Cancelar
+                </button>
+                <button 
+                  type="button" 
+                  onClick={handleCriarSprint}
+                  style={{
+                    padding: '0.5rem 1.2rem',
+                    border: 'none',
+                    borderRadius: '6px',
+                    fontSize: '1rem',
+                    cursor: 'pointer',
+                    transition: 'background 0.2s',
+                    background: '#eebbc3',
+                    color: '#232946',
+                    fontWeight: 'bold'
+                  }}
+                >
+                  Criar
+                </button>
+              </div>
+            </div>
+          </div>
+        </div>
+      )}
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 
       {/* Column Modal */}
       {showColumnModal && (
