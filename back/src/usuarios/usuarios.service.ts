@@ -14,14 +14,14 @@ export interface Usuario {
 export class UsuarioService {
   constructor(private readonly mysqlService: MysqlService) {}
 
-  //CRUDS usuario
+  //CRUDS Usuario
   async listarUsuarios(): Promise<any> {
-    const sql = 'SELECT * FROM usuarios';
+    const sql = 'SELECT * FROM Usuarios';
     return this.mysqlService.query(sql);
   }
 
   async buscarUsuarioPorId(id: number): Promise<any> {
-    const sql = 'SELECT * FROM usuarios WHERE id = ?';
+    const sql = 'SELECT * FROM Usuarios WHERE id = ?';
     return this.mysqlService.query(sql, [id]);
   }
 
@@ -54,7 +54,7 @@ export class UsuarioService {
   ): Promise<any> {
     const senhaHash = await bcrypt.hash(senha_hash, 10);
     const sql =
-      'INSERT INTO usuarios (nome, email, senha_hash) VALUES (?, ?, ?)';
+      'INSERT INTO Usuarios (nome, email, senha_hash) VALUES (?, ?, ?)';
     return this.mysqlService.query(sql, [nome, email, senhaHash]);
   }
 
@@ -63,12 +63,12 @@ export class UsuarioService {
     nome: string,
     email: string,
   ): Promise<any> {
-    const sql = 'UPDATE usuarios SET nome = ?, email = ? WHERE id = ?';
+    const sql = 'UPDATE Usuarios SET nome = ?, email = ? WHERE id = ?';
     return this.mysqlService.query(sql, [nome, email, id]);
   }
 
   async deletarUsuario(id: number): Promise<any> {
-    const sql = 'DELETE FROM usuarios WHERE id = ?';
+    const sql = 'DELETE FROM Usuarios WHERE id = ?';
     return this.mysqlService.query(sql, [id]);
   }
 }

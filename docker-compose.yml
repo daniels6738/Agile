@@ -32,11 +32,22 @@ services:
       - ./back/src/db:/docker-entrypoint-initdb.d
     # SEÇÃO ADICIONADA: Verificação de saúde
     healthcheck:
-      test: ["CMD", "mysqladmin" ,"ping", "-h", "localhost", "-u", "root", "-p${MYSQL_ROOT_PASSWORD}"]
-      interval: 10s
+      # O novo teste tenta executar uma query como o usuário da aplicação
+      test: ["CMD", "mysql", "-h", "localhost", "-u", "PAA", "-psenhaboaPAA", "-D", "agile_platform_db", "-e", "SELECT 1;"]
+      interval: 5s
       timeout: 5s
-      retries: 5
+      retries: 10
       start_period: 30s
+
+  frontend:
+    build:
+      context: ./front  # Aponta para a pasta do front-end
+      dockerfile: Dockerfile  # Especifica o nome do Dockerfile
+    ports:
+      - "8080:80"  # Mapeia a porta 80 do contêiner para a 8080 da sua máquina
+    depends_on:
+      - backend # Garante que o front inicie depois do back
+
 
 volumes:
   mysql_data:
