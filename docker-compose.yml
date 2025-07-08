@@ -1,0 +1,42 @@
+version: '3.8'
+
+services:
+  backend:
+    build:
+      context: ./back
+    ports:
+      - "3000:3000"
+    environment:
+      DB_HOST: mysql_db
+      DB_USER: PAA
+      DB_PASSWORD: senhaboaPAA
+      DB_DATABASE: agile_platform_db
+      DB_PORT: 3306
+    depends_on:
+      # NOVA FORMA: Espera o mysql_db se tornar saudável
+      mysql_db:
+        condition: service_healthy
+
+  mysql_db:
+    image: mysql:8.0
+    restart: always
+    environment:
+      MYSQL_ROOT_PASSWORD: senhaexcelentePAA
+      MYSQL_DATABASE: agile_platform_db
+      MYSQL_USER: PAA
+      MYSQL_PASSWORD: senhaboaPAA
+    ports:
+      - "3306:3306"
+    volumes:
+      - mysql_data:/var/lib/mysql
+      - ./back/src/db:/docker-entrypoint-initdb.d
+    # SEÇÃO ADICIONADA: Verificação de saúde
+    healthcheck:
+      test: ["CMD", "mysqladmin" ,"ping", "-h", "localhost", "-u", "root", "-p${MYSQL_ROOT_PASSWORD}"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+      start_period: 30s
+
+volumes:
+  mysql_data:
