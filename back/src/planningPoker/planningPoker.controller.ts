@@ -16,16 +16,18 @@ export class PlanningPokerController {
 
   @Get(':id_task')
   async listarVotosPlanningPoker(@Param('id_task') id_task: string) {
-    return this.planningPokerService.listarVotosDaTaskPlanningPoker(
-      Number(id_task),
-    );
+    console.log('entrou: ', Number(id_task));
+    const quantidade =
+      await this.planningPokerService.listarVotosDaTaskPlanningPoker(
+        Number(id_task),
+      );
+    return { quantidade };
   }
 
   @Post('votar')
   votar(
     @Body() body: { id_task: number; id_usuario: number; valor_voto: number },
   ) {
-    console.log(body.id_task);
     return this.planningPokerService.votarPLanningPoker(
       body.id_task,
       body.id_usuario,

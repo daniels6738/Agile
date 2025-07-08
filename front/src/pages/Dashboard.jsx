@@ -19,6 +19,11 @@ const Dashboard = () => {
   const [draggedTicket, setDraggedTicket] = useState(null);
   const [draggedColumn, setDraggedColumn] = useState(null);
   const [dragOverColumn, setDragOverColumn] = useState(null);
+  const [selectedTicket, setSelectedTicket] = useState(null);
+  const [showEditModal, setShowEditModal] = useState(false);  
+  const [quantidadeVotos, setQuantidadeVotos] = useState(0);
+
+
   const [burndownImg, setBurndownImg] = useState(null);
   const [membros, setMembros] = useState([]);
   const [sprints, setSprints] = useState([]);
@@ -100,6 +105,34 @@ const Dashboard = () => {
     });
   };
 
+  const abrirModalEdicao = (ticket) => {
+  setSelectedTicket(ticket);
+  setModalFields({
+    id_sprint: ticket.id_sprint || null,
+    titulo: ticket.titulo || '',
+    descricao: ticket.descricao || '',
+    id_responsavel: ticket.id_responsavel || null,
+    pontuacao: ticket.pontuacao || '',
+    status: ticket.status || 'A FAZER',
+  });
+  setShowEditModal(true);
+  carregarVotos(ticket.id);
+
+  };
+
+const fecharModalEdicao = () => {
+  setSelectedTicket(null);
+  setShowEditModal(false);
+  carregarTasksDaSprint();
+   setModalFields({
+    id_sprint: null,
+    titulo: '',
+    descricao: '',
+    id_responsavel: null,
+    pontuacao: '',
+    status: '',
+  });
+  };
  
   const handleCreateTicket = async () => {
   if (!modalFields.titulo.trim()) return;   
@@ -153,7 +186,7 @@ const Dashboard = () => {
 
 
 
-const handleCriarBurnDown = async () => {
+  const handleCriarBurnDown = async () => {
   if (!modalFields.id_sprint) {
     alert('Por favor, selecione uma sprint');
     return;
@@ -176,7 +209,7 @@ const handleCriarBurnDown = async () => {
     console.error('Erro ao gerar gráfico:', err);
     alert('Erro ao gerar gráfico de Burndown');
   }
-};
+  };
 
 
 
@@ -232,9 +265,6 @@ const handleCriarBurnDown = async () => {
     alert('Erro na comunicação com o servidor.');
   }
 };
-
-
-
 
 
   const handleDragStart = (ticket, colId) => {
@@ -312,6 +342,72 @@ const handleCriarBurnDown = async () => {
   }
   };
 
+  const handleVotar = async () => {
+    try {
+      await fetch(`http://localhost:3000/planning-poker/votar`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          id_task: selectedTicket.id,
+          id_usuario: id_usuario_logado, // já tem no localStorage
+          valor_voto: Number(modalFields.pontuacao)
+        })
+      });
+      alert('Voto enviado!');
+      carregarVotos(selectedTicket.id); // Atualiza a quantidade de votos
+    } catch (err) {
+      alert('Erro ao votar.');
+    }
+  };
+
+const handleFinalizarVotacao = async () => {
+  try {
+    await fetch(`http://localhost:3000/planning-poker/concluir/${selectedTicket.id}`);
+    alert('Votação finalizada!');
+  } catch (err) {
+    alert('Erro ao finalizar votação.');
+    }
+  };
+
+  const handleAtualizarTask = async () => {
+    if (!selectedTicket || !selectedTicket.id) {
+      alert('Tarefa não selecionada.');
+      return;
+    }
+
+    const payload = {
+      titulo: modalFields.titulo,
+      descricao: modalFields.descricao,
+      status: modalFields.status,
+      pontuacao: modalFields.pontuacao,
+      id_sprint: modalFields.id_sprint,
+      id_responsavel: modalFields.id_responsavel,
+    };
+
+    try {
+      const response = await fetch(`http://localhost:3000/tasks/${selectedTicket.id}`, {
+        method: 'PUT',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify(payload),
+      });
+
+      if (!response.ok) {
+        const erro = await response.json();
+        alert(`Erro ao atualizar: ${erro.message || 'Erro desconhecido'}`);
+        return;
+      }
+
+      alert('Tarefa atualizada com sucesso!');
+      setShowEditModal(false);
+      carregarTasksDaSprint();
+    } catch (err) {
+      console.error('Erro ao atualizar tarefa:', err);
+      alert('Erro na comunicação com o servidor.');
+    }
+  };
+
   const carregarMembros = async () => {
     try {
       const res = await fetch(`http://localhost:3000/projetos/listar-membros/${id_projeto}`);
@@ -358,6 +454,18 @@ const handleCriarBurnDown = async () => {
     }
 
   };
+
+  const carregarVotos = async (id_task) => {
+    try {
+      const res = await fetch(`http://localhost:3000/planning-poker/${id_task}`);
+      const data = await res.json();
+      setQuantidadeVotos(data.quantidade || 0); 
+    } catch (err) {
+      console.error("Erro ao buscar votos:", err);
+      setQuantidadeVotos(0);
+    }
+  };
+
 
 useEffect(() => {
   carregarMembros();
@@ -573,6 +681,10 @@ useEffect(() => {
                       transition: 'box-shadow 0.2s'
                     }}
                     draggable
+                    onClick={(e) => {
+                      e.stopPropagation();
+                      abrirModalEdicao(ticket); 
+                    }}
                     onDragStart={(e) => {
                       e.stopPropagation();
                       handleDragStart(ticket, col.id);
@@ -1346,6 +1458,358 @@ useEffect(() => {
           </div>
         </div>
       )}
+
+
+
+
+
+
+
+       {/*Editar Ticket Modal */}
+      {showEditModal && selectedTicket && (
+        <div style={{
+          position: 'fixed',
+          top: 0, left: 0, right: 0, bottom: 0,
+          background: 'rgba(0,0,0,0.25)',
+          display: 'flex',
+          alignItems: 'center',
+          justifyContent: 'center',
+          zIndex: 1000
+        }} onClick={fecharModalEdicao}>
+          <div style={{
+            background: '#232946',
+            color: '#fff',
+            borderRadius: '14px',
+            padding: '2.5rem 2.5rem 2rem 2.5rem',
+            minWidth: '340px',
+            boxShadow: '0 2px 24px rgba(0,0,0,0.18)',
+            position: 'relative'
+          }} onClick={e => e.stopPropagation()}>
+            <h3 style={{
+              fontSize: '1.4rem',
+              fontWeight: 'bold',
+              marginBottom: '1.5rem',
+              color: '#fff',
+              letterSpacing: '0.5px'
+            }}>Ticket</h3>
+            
+            <div style={{
+              display: 'flex',
+              flexDirection: 'column',
+              gap: '1.2rem'
+            }}>
+              <label style={{
+                fontSize: '1rem',
+                fontWeight: '500',
+                marginBottom: '0.3rem',
+                color: '#eebbc3',
+                display: 'flex',
+                flexDirection: 'column',
+                gap: '0.3rem'
+              }}>
+                Título
+                <input
+                  type="text"
+                  placeholder="Título da tarefa"
+                  value={modalFields.titulo}
+                  onChange={e => setModalFields(f => ({ ...f, titulo: e.target.value }))}
+                  onKeyDown={e => e.key === 'Enter' && handleCreateTicket()}
+                  required
+                  style={{
+                    background: '#fff',
+                    color: '#232946',
+                    border: '1.5px solid #eebbc3',
+                    borderRadius: '7px',
+                    padding: '0.6rem 1rem',
+                    fontSize: '1rem',
+                    marginTop: '0.2rem',
+                    marginBottom: '0.1rem',
+                    outline: 'none',
+                    transition: 'border 0.2s'
+                  }}
+                />
+              </label>
+              
+              <label style={{
+                fontSize: '1rem',
+                fontWeight: '500',
+                marginBottom: '0.3rem',
+                color: '#eebbc3',
+                display: 'flex',
+                flexDirection: 'column',
+                gap: '0.3rem'
+              }}>
+                Descrição
+                <textarea
+                  placeholder="Descrição detalhada"
+                  value={modalFields.descricao}
+                  onChange={e => setModalFields(f => ({ ...f, descricao: e.target.value }))}
+                  style={{
+                    background: '#fff',
+                    color: '#232946',
+                    border: '1.5px solid #eebbc3',
+                    borderRadius: '7px',
+                    padding: '0.6rem 1rem',
+                    fontSize: '1rem',
+                    marginTop: '0.2rem',
+                    marginBottom: '0.1rem',
+                    outline: 'none',
+                    transition: 'border 0.2s',
+                    minHeight: '60px',
+                    resize: 'vertical'
+                  }}
+                />
+              </label>
+              
+              <label style={{
+                fontSize: '1rem',
+                fontWeight: '500',
+                marginBottom: '0.3rem',
+                color: '#eebbc3',
+                display: 'flex',
+                flexDirection: 'column',
+                gap: '0.3rem'
+              }}>
+
+                  Atribuir a Sprint
+                <label style={{  }}>
+                <select
+                  value={modalFields.id_sprint || ''}
+                  onChange={(e) =>
+                    setModalFields((f) => ({
+                      ...f,
+                      id_sprint: e.target.value === '' ? null : Number(e.target.value),
+                    }))
+                  }
+                  style={{
+                    background: '#fff',
+                    color: '#232946',
+                    border: '1.5px solid #eebbc3',
+                    borderRadius: '7px',
+                    padding: '0.6rem 1rem',
+                    fontSize: '1rem',
+                    marginTop: '0.2rem',
+                    marginBottom: '0.1rem',
+                    outline: 'none',
+                    transition: 'border 0.2s',
+                  }}
+                >
+                  <option value="">Sem Atribuições</option>
+                  {sprints.map((m) => (
+                    <option key={m.id} value={m.id}>
+                      {m.nome}
+                    </option>
+                  ))}
+                </select>
+              </label>
+              </label>
+             <label style={{
+                fontSize: '1rem',
+                fontWeight: '500',
+                marginBottom: '0.3rem',
+                color: '#eebbc3',
+                display: 'flex',
+                flexDirection: 'column',
+                gap: '0.3rem'
+              }}>
+                 <label style={{
+                fontSize: '1rem',
+                fontWeight: '500',
+                marginBottom: '0.3rem',
+                color: '#eebbc3',
+                display: 'flex',
+                flexDirection: 'column',
+                gap: '0.3rem'
+              }}>
+                
+                  Responsável
+                <label style={{}}>
+                <select
+                  value={modalFields.id_responsavel || ''}
+                  onChange={(e) =>
+                    setModalFields((f) => ({
+                      ...f,
+                      id_responsavel: e.target.value === '' ? null : Number(e.target.value),
+                    }))
+                  }
+                  style={{
+                    background: '#fff',
+                    color: '#232946',
+                    border: '1.5px solid #eebbc3',
+                    borderRadius: '7px',
+                    padding: '0.6rem 1rem',
+                    fontSize: '1rem',
+                    marginTop: '0.2rem',
+                    marginBottom: '0.1rem',
+                    outline: 'none',
+                    transition: 'border 0.2s',
+                  }}
+                >
+                  <option value="">Sem responsável</option>
+                  {membros.map((m) => (
+                    <option key={m.id} value={m.id}>
+                      {m.nome}
+                    </option>
+                  ))}
+                </select>
+              </label>
+              </label>
+             <label style={{
+                fontSize: '1rem',
+                fontWeight: '500',
+                marginBottom: '0.3rem',
+                color: '#eebbc3',
+                display: 'flex',
+                flexDirection: 'column',
+                gap: '0.3rem'
+              }}></label>
+
+
+                Status
+                <select
+                  value={modalFields.status || 'A Fazer'}
+                  onChange={e => setModalFields(f => ({ ...f, status: e.target.value }))}
+                  style={{
+                    background: '#fff',
+                    color: '#232946',
+                    border: '1.5px solid #eebbc3',
+                    borderRadius: '7px',
+                    padding: '0.6rem 1rem',
+                    fontSize: '1rem',
+                    marginTop: '0.2rem',
+                    marginBottom: '0.1rem',
+                    outline: 'none',
+                    transition: 'border 0.2s'
+                  }}
+                >
+                  <option value="A Fazer">A Fazer</option>
+                  <option value="Em Andamento">Em Andamento</option>
+                  <option value="Em Revisão">Em Revisão</option>
+                  <option value="Concluído">Concluído</option>
+                </select>
+              </label>
+              <label style={{
+                  fontSize: '1rem',
+                  fontWeight: '500',
+                  marginBottom: '0.3rem',
+                  color: '#eebbc3',
+                  display: 'flex',
+                  flexDirection: 'column',
+                  gap: '0.3rem'
+                }}>
+                  Planning Poker
+                  <div style={{
+                    display: 'flex',
+                    alignItems: 'center',
+                    gap: '0.7rem'
+                  }}>
+                    {/* Quantidade de votos */}
+                    <div style={{ minWidth: '40px', fontWeight: 'bold', color: '#eebbc3' }}>
+                      🗳️ {quantidadeVotos}
+                    </div>
+
+                    {/* Input de pontuação */}
+                    <input
+                      type="number"
+                      placeholder="Story Points"
+                      value={modalFields.pontuacao}
+                      onChange={e => setModalFields(f => ({ ...f, pontuacao: e.target.value }))}
+                      min="1"
+                      style={{
+                        background: '#fff',
+                        color: '#232946',
+                        border: '1.5px solid #eebbc3',
+                        borderRadius: '7px',
+                        padding: '0.6rem 1rem',
+                        fontSize: '1rem',
+                        width: '80px'
+                      }}
+                    />
+
+                    {/* Botão Votar */}
+                    <button
+                      type="button"
+                      onClick={handleVotar}
+                      style={{
+                        background: '#eebbc3',
+                        color: '#232946',
+                        border: 'none',
+                        borderRadius: '6px',
+                        padding: '0.4rem 0.8rem',
+                        cursor: 'pointer',
+                        fontWeight: 'bold'
+                      }}
+                    >
+                      Votar
+                    </button>
+
+                    {/* Botão Finalizar */}
+                    <button
+                      type="button"
+                      onClick={handleFinalizarVotacao}
+                      style={{
+                        background: '#232946',
+                        color: '#fff',
+                        border: '1.5px solid #eebbc3',
+                        borderRadius: '6px',
+                        padding: '0.4rem 0.8rem',
+                        cursor: 'pointer',
+                        fontWeight: 'bold'
+                      }}
+                    >
+                      Finalizar
+                    </button>
+                  </div>
+                </label>
+
+              
+              <div style={{
+                display: 'flex',
+                justifyContent: 'flex-end',
+                gap: '1rem',
+                marginTop: '0.5rem'
+              }}>
+                <button 
+                  type="button" 
+                  onClick={fecharModalEdicao} 
+                  style={{
+                    padding: '0.5rem 1.2rem',
+                    border: '1.5px solid #eebbc3',
+                    borderRadius: '6px',
+                    fontSize: '1rem',
+                    cursor: 'pointer',
+                    transition: 'background 0.2s',
+                    background: '#fff',
+                    color: '#232946',
+                    fontWeight: 'bold'
+                  }}
+                >
+                  Cancelar
+                </button>
+                <button 
+                  type="button" 
+                  onClick={handleAtualizarTask}
+                  style={{
+                    padding: '0.5rem 1.2rem',
+                    border: 'none',
+                    borderRadius: '6px',
+                    fontSize: '1rem',
+                    cursor: 'pointer',
+                    transition: 'background 0.2s',
+                    background: '#eebbc3',
+                    color: '#232946',
+                    fontWeight: 'bold'
+                  }}
+                >
+                  Atualizar
+                </button>
+              </div>
+            </div>
+          </div>
+        </div>
+      )}
+
+
     </div>
   );
 };

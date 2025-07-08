@@ -10,9 +10,11 @@ import { MysqlService } from '../db/app.mysql.service';
 export class PlanningPokerService {
   constructor(private readonly mysqlService: MysqlService) {}
 
-  async listarVotosDaTaskPlanningPoker(id_task: number): Promise<any> {
-    const sql = 'SELECT * FROM VotosPlanningPoker WHERE id_task = ?';
-    return this.mysqlService.query(sql, [id_task]);
+  async listarVotosDaTaskPlanningPoker(id_task: number): Promise<number> {
+    const sql =
+      'SELECT COUNT(*) as quantidade FROM VotosPlanningPoker WHERE id_task = ?';
+    const resultado = await this.mysqlService.query(sql, [id_task]);
+    return resultado[0]?.quantidade || 0;
   }
 
   async votarPLanningPoker(
