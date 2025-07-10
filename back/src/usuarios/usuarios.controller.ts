@@ -55,4 +55,9 @@ export class UsuariosController {
   async deletar(@Param('id') id: string) {
     return this.UsuarioService.deletarUsuario(Number(id));
   }
+
+  @Get('buscar-por-nome-ou-email/:query')
+  async buscarPorNomeOuEmail(@Param('query') query: string) {
+    return this.UsuarioService.buscarPorNomeOuEmail(query);
+  }
 }

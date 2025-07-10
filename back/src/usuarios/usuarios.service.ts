@@ -71,4 +71,10 @@ export class UsuarioService {
     const sql = 'DELETE FROM Usuarios WHERE id = ?';
     return this.mysqlService.query(sql, [id]);
   }
+
+  async buscarPorNomeOuEmail(query: string): Promise<any> {
+    const sql = `SELECT id, nome, email FROM Usuarios WHERE nome LIKE ? OR email LIKE ? LIMIT 10`;
+    const likeQuery = `%${query}%`;
+    return this.mysqlService.query(sql, [likeQuery, likeQuery]);
+  }
 }

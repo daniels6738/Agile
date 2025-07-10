@@ -90,4 +90,24 @@ export class ProjetosController {
       Number(id_usuario),
     );
   }
+
+  @Put('alterar-funcao/:id_projeto/:id_usuario_admin/:id_usuario')
+  async alterarFuncaoMembro(
+    @Param('id_projeto') id_projeto: string,
+    @Param('id_usuario_admin') id_usuario_admin: string,
+    @Param('id_usuario') id_usuario: string,
+    @Body('nova_funcao') nova_funcao: string,
+  ) {
+    return this.projetoService.alterarFuncaoMembro(
+      Number(id_projeto),
+      Number(id_usuario_admin),
+      Number(id_usuario),
+      nova_funcao,
+    );
+  }
+
+  @Get('membros-funcoes/:id_projeto')
+  async listarMembrosComFuncoes(@Param('id_projeto') id_projeto: string) {
+    return this.projetoService.listarMembrosComFuncoes(Number(id_projeto));
+  }
 }

@@ -42,12 +42,25 @@ const Dashboard = () => {
 
   });
   
+  // Adiciona o item de gerenciamento de membros para Admins
+  const [isAdmin, setIsAdmin] = useState(false);
+  useEffect(() => {
+    // Checa se o usuário logado é admin neste projeto
+    const id_usuario = Number(localStorage.getItem('id_usuario'));
+    fetch(`http://localhost:3000/projetos/listar-projetos/${id_usuario}`)
+      .then(res => res.json())
+      .then(projetos => {
+        const thisProject = projetos.find(p => p.id === id_projeto);
+        setIsAdmin(thisProject?.funcao === 'Admin');
+      });
+  }, [id_projeto]);
 
   const sidebarItems = [
     { icon: '🏠', label: 'Dashboard' },
     { icon: '📝', label: 'Projetos', path: '/home' },
     { icon: '👤', label: 'Perfil' },
     { icon: '⚙️', label: 'Configurações' },
+    ...(isAdmin ? [{ icon: '👥', label: 'Gerenciar Membros', path: `/projeto/${id_projeto}/membros` }] : []),
   ];
 
   const handleAddColumn = () => {
@@ -355,7 +368,7 @@ const fecharModalEdicao = () => {
       });
       alert('Voto enviado!');
       carregarVotos(selectedTicket.id); // Atualiza a quantidade de votos
-    } catch (err) {
+    } catch {
       alert('Erro ao votar.');
     }
   };
@@ -364,7 +377,7 @@ const handleFinalizarVotacao = async () => {
   try {
     await fetch(`http://localhost:3000/planning-poker/concluir/${selectedTicket.id}`);
     alert('Votação finalizada!');
-  } catch (err) {
+  } catch{
     alert('Erro ao finalizar votação.');
     }
   };
@@ -1458,8 +1471,6 @@ useEffect(() => {
           </div>
         </div>
       )}
-
-
 
 
 

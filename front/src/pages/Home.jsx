@@ -11,39 +11,12 @@ const Home = () => {
   const [currentMemberRole, setCurrentMemberRole] = useState('');
   const [showSuggestions, setShowSuggestions] = useState(false);
   const [selectedProject, setSelectedProject] = useState(null);
+  const [userSuggestions, setUserSuggestions] = useState([]);
   const suggestionsRef = useRef(null);
   const [projetos, setProjetos] = useState([]);
   const navigate = useNavigate();
 
-  
-  
-  const mockUsers = [
-    { id: 1, email: 'john.doe@example.com', name: 'John Doe' },
-    { id: 2, email: 'jane.smith@example.com', name: 'Jane Smith' },
-    { id: 3, email: 'mike.wilson@example.com', name: 'Mike Wilson' },
-    { id: 4, email: 'sarah.jones@example.com', name: 'Sarah Jones' },
-    { id: 5, email: 'alex.brown@example.com', name: 'Alex Brown' },
-  ];
-
-  const getSuggestions = (input) => {
-    if (!input) return [];
-    const lowercased = input.toLowerCase();
-    return mockUsers.filter(user => 
-      user.email.toLowerCase().includes(lowercased) || 
-      user.name.toLowerCase().includes(lowercased)
-    ).slice(0, 5);
-  };
-
-  const suggestions = getSuggestions(currentMemberInput);
-
-  useEffect(() => {
-    const handleClickOutside = (event) => {
-      if (suggestionsRef.current && !suggestionsRef.current.contains(event.target)) {
-        setShowSuggestions(false);
-      }
-    };
-
-    const carregarProjetos = async () => {
+  const carregarProjetos = async () => {
     const idUsuario = localStorage.getItem('id_usuario');
 
     if (!idUsuario) {
@@ -59,27 +32,19 @@ const Home = () => {
       console.error('Erro ao buscar projetos do usuário:', error);
     }
   };
-  carregarProjetos();
+
+  useEffect(() => {
+    const handleClickOutside = (event) => {
+      if (suggestionsRef.current && !suggestionsRef.current.contains(event.target)) {
+        setShowSuggestions(false);
+      }
+    };
+
+    carregarProjetos();
 
     document.addEventListener('mousedown', handleClickOutside);
     return () => document.removeEventListener('mousedown', handleClickOutside);
-
-    
   }, []);
-
-  const handleAddMember = (user) => {
-    if (membros.find(m => m.email === user.email)) {
-      alert('Este membro já foi adicionado');
-      return;
-    }
-    
-    const role = currentMemberRole || 'Developer';
-    
-    setMembros([...membros, { ...user, funcao: role }]);
-    setCurrentMemberInput('');
-    setCurrentMemberRole('');
-    setShowSuggestions(false);
-  };
 
   const removeMembro = (email) => {
     setMembros(membros.filter(m => m.email !== email));
@@ -90,73 +55,55 @@ const Home = () => {
       alert('Por favor, preencha todos os campos obrigatórios');
       return;
     }
-     const id_usuario = localStorage.getItem('id_usuario');
-     if (!id_usuario) {
+    const id_usuario = localStorage.getItem('id_usuario');
+    if (!id_usuario) {
       alert('Usuário não logado');
       return;
-  }
-    try {
-    // 1. Cria o projeto
-    const res = await fetch('http://localhost:3000/projetos', {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({
-        id_usuario: Number(id_usuario),
-        nome,
-        descricao,
-      }),
-    });
-if (!res.ok) {
-      const err = await res.json();
-      alert(err.message || 'Erro ao criar projeto');
-      return;
     }
-
-    const projetoCriado = await res.json();
-    const id_projeto = projetoCriado.id;
-
-    // 2. Adiciona os membros se houver
-    for (const membro of membros) {
-      await fetch('http://localhost:3000/projetos/adicionar-Membros', {
+    try {
+      // 1. Cria o projeto
+      const res = await fetch('http://localhost:3000/projetos', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
-          id_projeto,
-          id_usuario_admin: Number(id_usuario),
-          email: membro.email,
-          funcao: membro.funcao || 'Developer',
+          id_usuario: Number(id_usuario),
+          nome,
+          descricao,
         }),
       });
+      if (!res.ok) {
+        const err = await res.json();
+        alert(err.message || 'Erro ao criar projeto');
+        return;
+      }
+      const projetoCriado = await res.json();
+      const id_projeto = projetoCriado.idProjeto || projetoCriado.id;
+      // 2. Adiciona os membros se houver
+      for (const membro of membros) {
+        await fetch('http://localhost:3000/projetos/adicionar-Membro', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({
+            id_projeto,
+            id_usuario_admin: Number(id_usuario),
+            email: membro.email,
+            funcao: membro.funcao || 'Membro',
+          }),
+        });
+      }
+      alert('Projeto criado com sucesso!');
+      setNome('');
+      setDescricao('');
+      setMembros([]);
+      setShowCreateModal(false);
+      // Atualiza a lista de projetos para incluir o novo
+      const projetosAtualizados = await fetch(`http://localhost:3000/projetos/listar-projetos/${id_usuario}`);
+      const data = await projetosAtualizados.json();
+      setProjetos(data);
+    } catch (error) {
+      console.error('Erro ao criar projeto:', error);
+      alert('Erro de comunicação com o servidor');
     }
-     alert('Projeto criado com sucesso!');
-    setNome('');
-    setDescricao('');
-    setMembros([]);
-    setShowCreateModal(false);
-     // Atualiza a lista de projetos para incluir o novo
-    const projetosAtualizados = await fetch(`http://localhost:3000/projetos/listar-projetos/${id_usuario}`);
-    const data = await projetosAtualizados.json();
-    setProjetos(data);
-
-  } catch (error) {
-    console.error('Erro ao criar projeto:', error);
-    alert('Erro de comunicação com o servidor');
-  }
-    
-    // TODO: Implement backend integration
-    console.log('Creating project:', { nome, descricao, membros });
-    
-    // Simulate project creation
-    alert('Projeto criado com sucesso!');
-    
-    // Reset form
-    setNome('');
-    setDescricao('');
-    setMembros([]);
-    setShowCreateModal(false);
-    
-    // TODO: Navigate to dashboard
-    // navigate(`/dashboard/${newProjectId}`);
   };
 
   const handleProjectClick = (projeto) => {
@@ -167,6 +114,34 @@ if (!res.ok) {
 
   // Navega para a página de dashboard
   navigate('/dashboard');
+  };
+
+  // Fetch user suggestions from backend
+  const fetchUserSuggestions = async (query) => {
+    if (!query) {
+      setUserSuggestions([]);
+      return;
+    }
+    try {
+      const res = await fetch(`http://localhost:3000/usuarios/buscar-por-nome-ou-email/${encodeURIComponent(query)}`);
+      const data = await res.json();
+      setUserSuggestions(data);
+    } catch {
+      setUserSuggestions([]);
+    }
+  };
+
+  // Add member from suggestion
+  const handleAddMember = (user) => {
+    if (membros.find(m => m.email === user.email)) {
+      alert('Este membro já foi adicionado');
+      return;
+    }
+    setMembros([...membros, { ...user, funcao: currentMemberRole || 'Membro' }]);
+    setCurrentMemberInput('');
+    setCurrentMemberRole('');
+    setShowSuggestions(false);
+    setUserSuggestions([]);
   };
 
   return (
@@ -266,6 +241,7 @@ if (!res.ok) {
                     onChange={e => {
                       setCurrentMemberInput(e.target.value);
                       setShowSuggestions(true);
+                      fetchUserSuggestions(e.target.value);
                     }}
                     onFocus={() => setShowSuggestions(true)}
                   />
@@ -274,25 +250,20 @@ if (!res.ok) {
                     value={currentMemberRole}
                     onChange={e => setCurrentMemberRole(e.target.value)}
                   >
-                    <option value="">Função (padrão: Developer)</option>
+                    <option value="">Função (padrão: Membro)</option>
                     <option value="Admin">Admin</option>
-                    <option value="Developer">Developer</option>
-                    <option value="Designer">Designer</option>
-                    <option value="Tester">Tester</option>
+                    <option value="Membro">Membro</option>
                   </select>
                   
-                  {showSuggestions && suggestions.length > 0 && (
+                  {showSuggestions && userSuggestions.length > 0 && (
                     <div className="suggestions-dropdown">
-                      {suggestions.map(user => (
-                        <div 
+                      {userSuggestions.map(user => (
+                        <div
                           key={user.id}
                           className="suggestion-item"
-                          onMouseDown={(e) => {
-                            e.preventDefault(); // Prevent blur
-                            handleAddMember(user);
-                          }}
+                          onMouseDown={() => handleAddMember(user)}
                         >
-                          <strong>{user.name}</strong>
+                          <strong>{user.nome}</strong>
                           <span>{user.email}</span>
                         </div>
                       ))}
