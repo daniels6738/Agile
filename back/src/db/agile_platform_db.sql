@@ -64,7 +64,7 @@ CREATE TABLE IF NOT EXISTS `Tasks` (
   `id_responsavel` INT UNSIGNED NULL, -- Pode ser nulo se não estiver atribuída
   `titulo` VARCHAR(255) NOT NULL,
   `descricao` TEXT NULL,
-  `status` ENUM('A Fazer', 'Em Andamento', 'Em Revisão', 'Concluído') NOT NULL DEFAULT 'A Fazer',
+  `status` VARCHAR(25) NOT NULL DEFAULT 'A Fazer',
   `pontuacao` DECIMAL(4, 1) NULL, -- Custo definido pelo planning poker
   `data_criacao` TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
   `data_atualizacao` TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
