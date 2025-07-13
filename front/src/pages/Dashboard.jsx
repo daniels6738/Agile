@@ -481,7 +481,30 @@ const handleFinalizarVotacao = async () => {
   };
 
 
-useEffect(() => {
+  const [totalTaskLoad, setTotalTaskLoad] = useState(0);
+
+  useEffect(() => {
+    // Fetch current sprint for the project
+    const fetchCurrentSprintAndLoad = async () => {
+      try {
+        const sprintRes = await fetch(`http://localhost:3000/sprints/buscar-sprint-atual/${id_projeto}`);
+        const sprintData = await sprintRes.json();
+        if (sprintData && sprintData.id) {
+          // Fetch total task load for user in current sprint
+          const loadRes = await fetch(`http://localhost:3000/sprints/estatistica-usuario/${sprintData.id}/${id_usuario_logado}`);
+          const loadData = await loadRes.json();
+          setTotalTaskLoad(loadData.total || 0);
+        } else {
+          setTotalTaskLoad(0);
+        }
+      } catch{
+        setTotalTaskLoad(0);
+      }
+    };
+    fetchCurrentSprintAndLoad();
+  }, [id_projeto, id_usuario_logado]);
+
+  useEffect(() => {
   carregarMembros();
   carregarTasksDaSprint();
   carregarSprints();
@@ -601,6 +624,14 @@ useEffect(() => {
             >
               Gerar BurnDown
             </button>
+          </div>
+
+          {/* Nova seção no cabeçalho do dashboard */}
+          <div style={{ display: 'flex', alignItems: 'center', gap: '2rem' }}>
+            <div className="task-load-info" style={{ background: '#eebbc3', color: '#232946', borderRadius: '8px', padding: '0.7rem 1.2rem', fontWeight: 'bold', minWidth: '180px', textAlign: 'center' }}>
+              <span>Total de Pontuação atribuída a você nesta sprint:</span>
+              <div style={{ fontSize: '1.3rem', marginTop: '0.3rem' }}>{totalTaskLoad}</div>
+            </div>
           </div>
         </div>
         
