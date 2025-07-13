@@ -6,6 +6,7 @@ import Dashboard from './pages/Dashboard';
 import Home from './pages/Home';
 import ProjectMembers from './pages/ProjectMembers';
 import NikoNikoCalendar from './pages/NikoNikoCalendar';
+import SprintManagement from './pages/SprintManagement';
 import './App.css';
 
 function App() {
@@ -20,6 +21,7 @@ function App() {
           <Route path="/home" element={<Home />} />
           <Route path="/projeto/:id_projeto/membros" element={<ProjectMembers />} />
           <Route path="/projeto/:id_projeto/niko-niko" element={<NikoNikoCalendar />} />
+          <Route path="/projeto/:id_projeto/sprints" element={<SprintManagement />} />
           <Route path="*" element={<Login />} />
         </Routes>
       </Router>

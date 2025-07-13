@@ -58,8 +58,7 @@ const Dashboard = () => {
   const sidebarItems = [
     { icon: '🏠', label: 'Dashboard' },
     { icon: '📝', label: 'Projetos', path: '/home' },
-    { icon: '👤', label: 'Perfil' },
-    { icon: '⚙️', label: 'Configurações' },
+    { icon: '🏃‍♂️', label: 'Sprints', path: `/projeto/${id_projeto}/sprints` },
     ...(isAdmin ? [{ icon: '👥', label: 'Gerenciar Membros', path: `/projeto/${id_projeto}/membros` }] : []),
     { icon: '📅', label: 'NikoNiko Calendar', path: `/projeto/${id_projeto}/niko-niko` },
   ];
@@ -536,11 +535,11 @@ const handleFinalizarVotacao = async () => {
               gap: '0.8rem',
               padding: '0.7rem 0.5rem',
               borderRadius: '8px',
-              cursor: 'pointer',
+              cursor: item.path ? 'pointer' : 'default',
               transition: 'background 0.2s'
             }}
-            onClick={() => navigate(item.path)}
-            onMouseEnter={(e) => e.currentTarget.style.background = '#393e6e'}
+            onClick={() => item.path && navigate(item.path)}
+            onMouseEnter={(e) => item.path && (e.currentTarget.style.background = '#393e6e')}
             onMouseLeave={(e) => e.currentTarget.style.background = 'transparent'}
             >
               <span style={{ fontSize: '1.2rem' }}>{item.icon}</span>
