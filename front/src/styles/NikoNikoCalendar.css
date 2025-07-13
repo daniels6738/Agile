@@ -1,0 +1,356 @@
+/* NikoNiko Calendar Styles - Matching Project Visual Identity */
+.niko-container {
+  min-height: 100vh;
+  background: #f4f6fa;
+  padding: 2rem;
+  display: flex;
+  align-items: flex-start;
+  justify-content: center;
+}
+
+.niko-content {
+  width: 100%;
+  max-width: 1200px;
+  background: #fff;
+  border-radius: 14px;
+  box-shadow: 0 2px 24px rgba(0,0,0,0.10);
+  padding: 2.5rem 2rem;
+  animation: fadeIn 0.3s ease-in;
+}
+
+@keyframes fadeIn {
+  from {
+    opacity: 0;
+    transform: translateY(10px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+.niko-title {
+  color: #232946;
+  font-size: 1.8rem;
+  font-weight: bold;
+  margin-bottom: 2rem;
+  letter-spacing: 0.5px;
+  text-align: center;
+}
+
+.niko-error {
+  background: #f8d7da;
+  color: #721c24;
+  border: 1px solid #f5c6cb;
+  border-radius: 7px;
+  padding: 0.8rem 1.2rem;
+  margin-bottom: 1.5rem;
+  font-weight: 500;
+  animation: slideDown 0.3s ease-out;
+}
+
+.niko-loading {
+  color: #232946;
+  background: #e3f2fd;
+  border: 1px solid #90caf9;
+  border-radius: 7px;
+  padding: 0.8rem 1.2rem;
+  margin-bottom: 1.5rem;
+  font-weight: 500;
+  animation: slideDown 0.3s ease-out;
+}
+
+@keyframes slideDown {
+  from {
+    opacity: 0;
+    transform: translateY(-10px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+.niko-mood-selector {
+  background: #232946;
+  border-radius: 10px;
+  padding: 1.5rem;
+  margin-bottom: 2rem;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  box-shadow: 0 2px 8px rgba(35, 41, 70, 0.15);
+}
+
+.niko-moods {
+  display: flex;
+  gap: 1.5rem;
+}
+
+.niko-mood-item {
+  font-size: 2.5rem;
+  cursor: grab;
+  user-select: none;
+  transition: transform 0.2s, filter 0.2s;
+  display: inline-block;
+}
+
+.niko-mood-item:hover {
+  transform: scale(1.2);
+  filter: drop-shadow(0 4px 8px rgba(0,0,0,0.2));
+}
+
+.niko-mood-item:active {
+  cursor: grabbing;
+  transform: scale(1.1);
+}
+
+.niko-instruction {
+  color: #eebbc3;
+  font-size: 1.1rem;
+  font-weight: 500;
+  letter-spacing: 0.3px;
+}
+
+.niko-table-wrapper {
+  overflow-x: auto;
+  margin-bottom: 2rem;
+  border-radius: 10px;
+  box-shadow: 0 1px 3px rgba(0,0,0,0.05);
+}
+
+.niko-calendar-table {
+  width: 100%;
+  border-collapse: separate;
+  border-spacing: 0;
+  min-width: 800px;
+  background: #fff;
+  border-radius: 10px;
+  overflow: hidden;
+}
+
+.niko-calendar-table th {
+  background: #232946;
+  color: #fff;
+  padding: 1.2rem 1rem;
+  font-weight: 600;
+  text-align: center;
+  position: sticky;
+  top: 0;
+  z-index: 10;
+}
+
+.niko-member-header {
+  text-align: left !important;
+  width: 200px;
+  padding-left: 1.5rem !important;
+}
+
+.niko-day-header {
+  min-width: 100px;
+}
+
+.niko-day-name {
+  font-size: 1rem;
+  margin-bottom: 0.2rem;
+}
+
+.niko-day-date {
+  font-size: 0.85rem;
+  opacity: 0.8;
+  font-weight: 400;
+}
+
+.niko-calendar-table td {
+  padding: 0;
+  border-bottom: 1px solid #f0f0f0;
+  border-right: 1px solid #f0f0f0;
+}
+
+.niko-calendar-table td:last-child {
+  border-right: none;
+}
+
+.niko-calendar-table tr:last-child td {
+  border-bottom: none;
+}
+
+.niko-member-cell {
+  padding: 1.2rem 1.5rem !important;
+  font-weight: 500;
+  color: #232946;
+  background: #fafafa;
+  border-right: 2px solid #eebbc3 !important;
+}
+
+.niko-member-name {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+}
+
+.niko-you-label {
+  color: #eebbc3;
+  font-size: 0.9rem;
+  font-weight: 400;
+}
+
+.niko-day-cell {
+  padding: 0.5rem;
+  text-align: center;
+  vertical-align: middle;
+  height: 80px;
+  position: relative;
+  transition: background 0.2s;
+}
+
+.niko-day-cell.niko-droppable {
+  background: #f9f9f9;
+  cursor: pointer;
+}
+
+.niko-day-cell.niko-droppable:hover {
+  background: #f0f8ff;
+}
+
+.niko-day-cell.niko-droppable:active {
+  background: #e8f4ff;
+}
+
+.niko-mood-display {
+  font-size: 2.2rem;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  height: 100%;
+  transition: transform 0.2s;
+}
+
+.niko-mood-display:not(:empty):hover {
+  transform: scale(1.1);
+}
+
+.niko-current-user-row {
+  background: #f0f8ff;
+}
+
+.niko-current-user-row .niko-member-cell {
+  background: #e8f4ff;
+  font-weight: 600;
+}
+
+.niko-current-user-row .niko-day-cell {
+  background: #f5faff;
+}
+
+.niko-current-user-row .niko-day-cell:hover {
+  background: #e8f4ff;
+}
+
+.niko-back-btn {
+  margin-top: 2rem;
+  padding: 0.7rem 1.8rem;
+  background: #232946;
+  color: #fff;
+  border: none;
+  border-radius: 6px;
+  font-size: 1rem;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.2s;
+  letter-spacing: 0.3px;
+  box-shadow: 0 2px 8px rgba(35, 41, 70, 0.15);
+}
+
+.niko-back-btn:hover {
+  background: #393e6e;
+  box-shadow: 0 4px 12px rgba(35, 41, 70, 0.25);
+  transform: translateY(-1px);
+}
+
+.niko-back-btn:active {
+  transform: translateY(0);
+  box-shadow: 0 2px 8px rgba(35, 41, 70, 0.15);
+}
+
+/* Responsive adjustments */
+@media (max-width: 1024px) {
+  .niko-container {
+    padding: 1rem;
+  }
+  
+  .niko-content {
+    padding: 2rem 1.5rem;
+  }
+  
+  .niko-mood-selector {
+    flex-direction: column;
+    gap: 1rem;
+    text-align: center;
+  }
+}
+
+@media (max-width: 768px) {
+  .niko-content {
+    padding: 1.5rem 1rem;
+  }
+  
+  .niko-title {
+    font-size: 1.5rem;
+  }
+  
+  .niko-mood-item {
+    font-size: 2rem;
+  }
+  
+  .niko-moods {
+    gap: 1rem;
+  }
+  
+  .niko-calendar-table th,
+  .niko-calendar-table td {
+    padding: 0.8rem 0.5rem;
+  }
+  
+  .niko-member-cell {
+    padding: 0.8rem 1rem !important;
+  }
+  
+  .niko-day-cell {
+    height: 60px;
+  }
+  
+  .niko-mood-display {
+    font-size: 1.8rem;
+  }
+}
+
+/* Drag over effects */
+.niko-day-cell.niko-droppable.drag-over {
+  background: #e8f4ff;
+  box-shadow: inset 0 0 0 2px #90caf9;
+  transform: scale(1.05);
+}
+
+/* Loading animation for cells */
+.niko-day-cell.loading {
+  position: relative;
+  overflow: hidden;
+}
+
+.niko-day-cell.loading::after {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: -100%;
+  width: 100%;
+  height: 100%;
+  background: linear-gradient(90deg, transparent, rgba(238, 187, 195, 0.3), transparent);
+  animation: shimmer 1.5s infinite;
+}
+
+@keyframes shimmer {
+  to {
+    left: 100%;
+  }
+}

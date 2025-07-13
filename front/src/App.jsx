@@ -5,6 +5,7 @@ import SignUp from './pages/SignUp';
 import Dashboard from './pages/Dashboard';
 import Home from './pages/Home';
 import ProjectMembers from './pages/ProjectMembers';
+import NikoNikoCalendar from './pages/NikoNikoCalendar';
 import './App.css';
 
 function App() {
@@ -18,6 +19,7 @@ function App() {
           <Route path="/dashboard/:projectId" element={<Dashboard />} />
           <Route path="/home" element={<Home />} />
           <Route path="/projeto/:id_projeto/membros" element={<ProjectMembers />} />
+          <Route path="/projeto/:id_projeto/niko-niko" element={<NikoNikoCalendar />} />
           <Route path="*" element={<Login />} />
         </Routes>
       </Router>

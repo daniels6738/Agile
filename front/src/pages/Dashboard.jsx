@@ -61,6 +61,7 @@ const Dashboard = () => {
     { icon: '👤', label: 'Perfil' },
     { icon: '⚙️', label: 'Configurações' },
     ...(isAdmin ? [{ icon: '👥', label: 'Gerenciar Membros', path: `/projeto/${id_projeto}/membros` }] : []),
+    { icon: '📅', label: 'NikoNiko Calendar', path: `/projeto/${id_projeto}/niko-niko` },
   ];
 
   const handleAddColumn = () => {
