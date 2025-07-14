@@ -35,7 +35,7 @@ const Dashboard = () => {
     descricao: '',
     id_responsavel: null,
     pontuacao: '',
-    status: "A FAZER",
+    status: "A Fazer",
     nome_sprint: '',
     data_inicio: '',
     data_fim: ''
@@ -126,7 +126,7 @@ const Dashboard = () => {
     descricao: ticket.descricao || '',
     id_responsavel: ticket.id_responsavel || null,
     pontuacao: ticket.pontuacao || '',
-    status: ticket.status || 'A FAZER',
+    status: ticket.status || 'A Fazer',
   });
   setShowEditModal(true);
   carregarVotos(ticket.id);
