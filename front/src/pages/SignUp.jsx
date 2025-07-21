@@ -15,7 +15,7 @@ const SignUp = () => {
       alert('As senhas não coincidem!');
       return;
     }
-    alert(`Sign up with: ${email}`);
+    // alert(`Sign up with: ${email}`);
 
      try {
       const response = await fetch('http://localhost:3000/usuarios/cadastrar', {
